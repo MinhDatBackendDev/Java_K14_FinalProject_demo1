@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+          crossorigin="anonymous"></script>
+  <title>Home Page</title>
+  <meta charset="UTF-8">
+  <title>Home Page</title>
+</head>
+<style>
+  /*Pagination css*/
+  .listPage {
+    padding: 10px;
+    text-align: center;
+    list-style: none;
+  }
+
+  .listPage li {
+    background-color: #bbb7b7bd;
+    padding: 10px;
+    border: 1px solid;
+    display: inline-block;
+    margin: 0 5px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+
+  .listPage .active {
+    background-color: #2f4ed7;
+    color: #fff;
+  }
+
+</style>
+<body>
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container">
+    <div class="navbar-brand">JAVA K14</div>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+            aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/api/v1/employees/home">Home</a>
+        </li>
+        <!--        <li class="nav-item">-->
+        <!--          <a class="nav-link" href="#">Link</a>-->
+        <!--        </li>-->
+        <!--        <li class="nav-item dropdown">-->
+        <!--          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"-->
+        <!--             aria-expanded="false">-->
+        <!--            Dropdown-->
+        <!--          </a>-->
+        <!--          <ul class="dropdown-menu">-->
+        <!--            <li><a class="dropdown-item" href="#">Action</a></li>-->
+        <!--            <li><a class="dropdown-item" href="#">Another action</a></li>-->
+        <!--            <li>-->
+        <!--              <hr class="dropdown-divider">-->
+        <!--            </li>-->
+        <!--            <li><a class="dropdown-item" href="#">Something else here</a></li>-->
+        <!--          </ul>-->
+        <!--        </li>-->
+        <!--        <li class="nav-item">-->
+        <!--          <a class="nav-link disabled">Disabled</a>-->
+        <!--        </li>-->
+      </ul>
+      <div class="d-flex">
+        <form action="/api/v1/employees/logout" method="get">
+          <div style="padding-left: 10px;"><button class="btn btn-outline-primary" type="submit">Log Out</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</nav>
+<h2 class="container" style="padding-top: 20px" th:text="'Welcome,'+${nameS}+'!'"></h2>
+<input style="display: none" type="text" th:value="''+${roleS}" th:id="roleS">
+<form action="/api/v1/employees/searchEmployee" method="POST" class="container">
+  <div class="col-6 mt-3">
+    <div class="input-group mb-3">
+      <input type="text" class="form-control" placeholder="Search by name..."
+             aria-label="Search employee by name" aria-describedby="button-addon2" name="nameSearch">
+      <button class="btn btn-outline-primary" type="submit" id="button-addon2">Search</button>
+    </div>
+  </div>
+</form>
+<div class="container">
+  <div class="d-flex">
+    <form action="/api/v1/employees/register" method="get"><div style="padding-bottom: 10px;">
+      <button class="btn btn-outline-primary" type="submit" th:id="btn-add">Add new Employee</button>
+    </div></form>
+  </div>
+  <table class="table table-striped table-bordered table-hover">
+    <thead>
+    <th colspan="7" class="table-active" style="text-align: center;">Employee List</th>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Name</th>
+      <th scope="col">Phone</th>
+      <th scope="col">Email</th>
+      <th scope="col">Role</th>
+      <th scope="col">Edit</th>
+      <th scope="col">Delete</th>
+    </tr>
+    </thead>
+    <tbody>
+    <th:block th:each="employee : ${listUsers}">
+      <tr th:name="employee">
+        <td>[[${employee.id}]]</td>
+        <td>[[${employee.name}]]</td>
+        <td>[[${employee.phone}]]</td>
+        <td>[[${employee.email}]]</td>
+        <td id="employeeRole" th:value="${employee.role}">[[${employee.role}]]</td>
+        <td><form th:action="@{/api/v1/employees/edit/{id}(id=${employee.id})}" method="get">
+          <button class="btn btn-outline-primary" type="submit" th:name="btn-edit" >Edit</button>
+        </form></td>
+        <td><form th:action="@{/api/v1/employees/delete/{id}(id=${employee.id})}" method="get">
+          <button class="btn btn-outline-primary" type="submit" th:name="btn-delete" >Delete</button>
+        </form></td>
+      </tr>
+    </th:block>
+    </tbody>
+  </table>
+</div>
+<ul class="listPage">
+
+</ul>
+</body>
+<script>
+  // Pagination js
+  let thisPage = 1;
+  let limit = 5;
+  let list = document.getElementsByName("employee");
+
+  function loadItem() {
+    let beginGet = limit * (thisPage - 1);
+    let endGet = limit * thisPage - 1;
+    list.forEach((item, key) => {
+      if (key >= beginGet && key <= endGet) {
+        item.style.display = 'table-row';
+      } else {
+        item.style.display = 'none';
+      }
+    })
+    listPage();
+  }
+
+  loadItem();
+
+  function listPage() {
+    let count = Math.ceil(list.length / limit);
+    document.querySelector('.listPage').innerHTML = '';
+
+    if (thisPage != 1) {
+      let prev = document.createElement('li');
+      prev.innerText = 'Previous';
+      prev.setAttribute('onclick', "changePage(" + (thisPage - 1) + ")");
+      document.querySelector('.listPage').appendChild(prev);
+    }
+
+    for (i = 1; i <= count; i++) {
+      let newPage = document.createElement('li');
+      newPage.innerText = i;
+      if (i == thisPage) {
+        newPage.classList.add('active');
+      }
+      newPage.setAttribute('onclick', "changePage(" + i + ")");
+      document.querySelector('.listPage').appendChild(newPage);
+    }
+
+    if (thisPage != count) {
+      let next = document.createElement('li');
+      next.innerText = 'Next';
+      next.setAttribute('onclick', "changePage(" + (thisPage + 1) + ")");
+      document.querySelector('.listPage').appendChild(next);
+    }
+  }
+
+  function changePage(i) {
+    thisPage = i;
+    loadItem();
+  }
+
+  //Load button by Role js
+  let list_btn_edit = document.getElementsByName("btn-edit");
+  let list_btn_delete = document.getElementsByName("btn-delete");
+
+  if (document.getElementById("roleS").value==="Staff") {
+    document.getElementById("btn-add").disabled=true;
+    function loadButton() {
+      let beginGet = limit * (thisPage - 1);
+      let endGet = limit * thisPage - 1;
+      list_btn_edit.forEach((item, key) => {
+        if (key >= beginGet && key <= endGet) {
+          item.disabled=true;
+        } else {
+          item.disabled=true;
+        }
+      })
+      list_btn_delete.forEach((item, key) => {
+        if (key >= beginGet && key <= endGet) {
+          item.disabled=true;
+        } else {
+          item.disabled=true;
+        }
+      })
+    }
+    loadButton();
+  } else if (document.getElementById("roleS").value==="Manager") {
+    document.getElementById("btn-add").disabled=true;
+    function loadButton() {
+      let beginGet = limit * (thisPage - 1);
+      let endGet = limit * thisPage - 1;
+      list_btn_delete.forEach((item, key) => {
+        if (key >= beginGet && key <= endGet) {
+          item.disabled=true;
+        } else {
+          item.disabled=true;
+        }
+      })
+    }
+    loadButton();
+  }
+</script>
+</html>
