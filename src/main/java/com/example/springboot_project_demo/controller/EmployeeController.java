@@ -3,13 +3,17 @@ package com.example.springboot_project_demo.controller;
 import com.example.springboot_project_demo.exception.ResourceNotFoundException;
 import com.example.springboot_project_demo.model.Employee;
 import com.example.springboot_project_demo.repository.EmployeeRepository;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.http.HttpResponse;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -33,18 +37,52 @@ public class EmployeeController {
     }
 
     @PostMapping("/login")
-    public String checkLogin(@RequestParam(name = "name") String name,
-                        @RequestParam(name = "password") String password,
-                        HttpSession session,
-                        Model model) {
-        password = getSHAHash(password);
+    public String checkLogin(
+            @RequestParam(name = "name") String name,
+            @RequestParam(name = "password") String password,
+            @RequestParam(name = "remember") String remember,
+            HttpSession session,
+            HttpServletResponse response,
+            Model model
+    ) {
         employeeList = employeeRepository.findAll();
         for (int i=0;i<employeeList.size();i++) {
             if (employeeList.get(i).getName().compareToIgnoreCase(name)==0&&
-            employeeList.get(i).getPassword().compareTo(password)==0) {
+            employeeList.get(i).getPassword().compareTo(getSHAHash(password))==0) {
                 session.setAttribute("nameS",employeeList.get(i).getName());
                 session.setAttribute("roleS",employeeList.get(i).getRole());
-                model.addAttribute("listUsers",employeeList);
+
+                //Remember me
+                /** Username and Password of an Employee with checkbox will be saved
+                 *
+                 */
+                Cookie usernameCookie = new Cookie("usernameCookie",name);
+                Cookie passwordCookie = new Cookie("passwordCookie",password);
+                Cookie rememberCookie = new Cookie("rememberCookie",remember);
+                if (remember.compareTo("remember")==0) {
+                    response.addCookie(usernameCookie);
+                    response.addCookie(passwordCookie);
+                    response.addCookie(rememberCookie);
+                    usernameCookie.setMaxAge(60*60);
+                    passwordCookie.setMaxAge(60*60);
+                    rememberCookie.setMaxAge(60*60);
+                    session.setAttribute("usernameCookie",usernameCookie.getValue());
+                    session.setAttribute("passwordCookie",passwordCookie.getValue());
+                    session.setAttribute("rememberCookie",rememberCookie.getValue());
+                } else if (remember.compareTo("noRemember")==0) {
+                    response.addCookie(usernameCookie);
+                    response.addCookie(passwordCookie);
+                    response.addCookie(rememberCookie);
+                    usernameCookie.setMaxAge(0);
+                    passwordCookie.setMaxAge(0);
+                    rememberCookie.setMaxAge(0);
+                }
+
+                model.addAttribute("listEmployees",employeeList);
+                /** Khi login thanh cong thi nameS va roleS da duoc luu vao session
+                 * Nen nhung thao tac tra ve trang thi chi can goi ra
+                 * Vi da set san bien public o tren
+                 */
                 nameS = (String) session.getAttribute("nameS");
                 model.addAttribute("nameS",nameS);
                 roleS = (String) session.getAttribute("roleS");
@@ -56,6 +94,7 @@ public class EmployeeController {
         return "login";
     }
 
+    // SHA Hash code
     public static String getSHAHash(String input) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
@@ -82,10 +121,8 @@ public class EmployeeController {
             return "login";
         }
         employeeList = employeeRepository.findAll();
-        model.addAttribute("listUsers",employeeList);
-        nameS = (String) session.getAttribute("nameS");
+        model.addAttribute("listEmployees",employeeList);
         model.addAttribute("nameS",nameS);
-        roleS = (String) session.getAttribute("roleS");
         model.addAttribute("roleS",roleS);
         return "home";
     }
@@ -111,24 +148,23 @@ public class EmployeeController {
                                  @RequestParam(name = "role") String role,
                                  Model model,
                                  HttpSession session) {
-        password = getSHAHash(password);
+
         Employee newEmployee = new Employee();
         newEmployee.setName(name);
         newEmployee.setPhone(phone);
         newEmployee.setEmail(email);
-        newEmployee.setPassword(password);
+        newEmployee.setPassword(getSHAHash(password));
         newEmployee.setRole(role);
         employeeRepository.save(newEmployee);
         if (session.getAttribute("nameS")==null) {
             model.addAttribute("confirm","Create account successfully!");
             return "login";
         }
+
         employeeList = employeeRepository.findAll();
-        model.addAttribute("listUsers",employeeList);
-        nameS = (String) session.getAttribute("nameS");
         model.addAttribute("nameS",nameS);
-        roleS = (String) session.getAttribute("roleS");
         model.addAttribute("roleS",roleS);
+        model.addAttribute("listEmployees",employeeList);
         return "home";
     }
 
@@ -143,11 +179,9 @@ public class EmployeeController {
         }
         if (name=="") {
             List<Employee> employeeList = employeeRepository.findAll();
-            model.addAttribute("listUsers",employeeList);
-            nameS = (String) session.getAttribute("nameS");
             model.addAttribute("nameS",nameS);
-            roleS = (String) session.getAttribute("roleS");
             model.addAttribute("roleS",roleS);
+            model.addAttribute("listEmployees",employeeList);
             return "home";
         } else {
             List<Employee> employeeListSearch = new ArrayList<>();
@@ -157,9 +191,7 @@ public class EmployeeController {
                 }
             }
             model.addAttribute("listUsers",employeeListSearch);
-            nameS = (String) session.getAttribute("nameS");
             model.addAttribute("nameS",nameS);
-            roleS = (String) session.getAttribute("roleS");
             model.addAttribute("roleS",roleS);
             return "home";
         }
@@ -186,6 +218,23 @@ public class EmployeeController {
         String phone = updateEmployee.getPhone();
         String email = updateEmployee.getEmail();
         String role = updateEmployee.getRole();
+
+        employeeList = employeeRepository.findAll();
+        model.addAttribute("listEmployees",employeeList);
+        model.addAttribute("nameS",nameS);
+        model.addAttribute("roleS",roleS);
+
+        // Edit with role
+        if (
+                name.compareTo(nameS)==0
+        ) {
+            model.addAttribute("errorEdit","errorEdit");
+            return "home";
+        } else if (roleS.compareTo("Manager") == 0 && role.compareTo("Staff") != 0) {
+            model.addAttribute("errorEdit","errorEdit");
+            return "home";
+        }
+
         model.addAttribute("name",name);
         model.addAttribute("phone",phone);
         model.addAttribute("email",email);
@@ -213,11 +262,10 @@ public class EmployeeController {
         updateEmployee.setEmail(email);
         updateEmployee.setRole(role);
         employeeRepository.save(updateEmployee);
+
         employeeList = employeeRepository.findAll();
-        model.addAttribute("listUsers",employeeList);
-        nameS = (String) session.getAttribute("nameS");
+        model.addAttribute("listEmployees",employeeList);
         model.addAttribute("nameS",nameS);
-        roleS = (String) session.getAttribute("roleS");
         model.addAttribute("roleS",roleS);
         return "home";
     }
@@ -233,12 +281,23 @@ public class EmployeeController {
         }
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not exist with id: " + id));
+
+        // Delete with role
+        if (
+                employee.getName().compareTo(nameS)==0
+        ) {
+            model.addAttribute("errorDelete","errorDelete");
+            return "home";
+        } else if (roleS.compareTo("Manager") == 0 && employee.getRole().compareTo("Staff") != 0) {
+            model.addAttribute("errorDelete","errorDelete");
+            return "home";
+        }
+
         employeeRepository.delete(employee);
+
         employeeList = employeeRepository.findAll();
-        model.addAttribute("listUsers",employeeList);
-        nameS = (String) session.getAttribute("nameS");
+        model.addAttribute("listEmployees",employeeList);
         model.addAttribute("nameS",nameS);
-        roleS = (String) session.getAttribute("roleS");
         model.addAttribute("roleS",roleS);
         return "home";
     }
@@ -247,6 +306,61 @@ public class EmployeeController {
     @GetMapping("/logout")
     public String logout(HttpServletRequest request) {
         request.getSession().invalidate();
+        return "login";
+    }
+
+    // view confirmEmployee Page
+    @GetMapping("/forgot-Password")
+    public String viewConfirmEmployee() {
+        return "confirmEmployee";
+    }
+
+    // check Employee forgot password existed
+    @PostMapping("/confirmEmployee")
+    public String confirmEmployee(
+            @RequestParam("name") String name,
+            @RequestParam("phone") String phone,
+            @RequestParam("email") String email,
+            @RequestParam("role") String role,
+            Model model,
+            HttpSession session
+    ) {
+        employeeList = employeeRepository.findAll();
+        for (int i=0;i<employeeList.size();i++) {
+            if (
+                    employeeList.get(i).getName().compareToIgnoreCase(name)==0&&
+                            employeeList.get(i).getPhone().compareToIgnoreCase(phone)==0&&
+                            employeeList.get(i).getEmail().compareTo(email)==0&&
+                            employeeList.get(i).getRole().compareTo(role)==0
+            ) {
+                Long realEmployeeId = employeeList.get(i).getId();
+                session.setAttribute("realEmployeeId",realEmployeeId);
+                return "renewPassword";
+            }
+        }
+        model.addAttribute("fakeEmployee","fakeEmployee");
+        return "confirmEmployee";
+    }
+
+    // Renew password
+    @PostMapping("/renewPassword")
+    public String confirmEmployee(
+            @RequestParam("newPassword") String newPassword,
+            Model model,
+            HttpSession session,
+            HttpServletRequest request
+    ){
+        if (session.getAttribute("realEmployeeId")==null) {
+            model.addAttribute("fakeEmployee","noEmployee");
+            return "confirmEmployee";
+        }
+        Long id = (Long) session.getAttribute("realEmployeeId");
+        Employee renewPasswordEmployee = employeeRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Employee not exist with id: " + id));
+        renewPasswordEmployee.setPassword(getSHAHash(newPassword));
+        employeeRepository.save(renewPasswordEmployee);
+        request.getSession().invalidate();
+        model.addAttribute("confirm","Renew Password Successfully!");
         return "login";
     }
 

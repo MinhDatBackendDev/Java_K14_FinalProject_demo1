@@ -77,8 +77,10 @@
     </div>
   </div>
 </nav>
-<h2 class="container" style="padding-top: 20px" th:text="'Welcome,'+${nameS}+'!'"></h2>
-<input style="display: none" type="text" th:value="''+${roleS}" th:id="roleS">
+<h2 class="container" style="padding-top: 20px" th:text="'Welcome, '+${nameS}+'!'"></h2>
+<div style="display: none" th:text="''+${roleS}" th:id="roleS"></div>
+<div style="display: none" th:text="''+${errorEdit}" th:id="errorEdit"></div>
+<div style="display: none" th:text="''+${errorDelete}" th:id="errorDelete"></div>
 <form action="/api/v1/employees/searchEmployee" method="POST" class="container">
   <div class="col-6 mt-3">
     <div class="input-group mb-3">
@@ -108,7 +110,7 @@
     </tr>
     </thead>
     <tbody>
-    <th:block th:each="employee : ${listUsers}">
+    <th:block th:each="employee : ${listEmployees}">
       <tr th:name="employee">
         <td>[[${employee.id}]]</td>
         <td>[[${employee.name}]]</td>
@@ -210,7 +212,7 @@
       })
     }
     loadButton();
-  } else if (document.getElementById("roleS").value==="Manager") {
+  } else if (document.getElementById("roleS").innerText==="Manager") {
     document.getElementById("btn-add").disabled=true;
     function loadButton() {
       let beginGet = limit * (thisPage - 1);
@@ -225,5 +227,16 @@
     }
     loadButton();
   }
+
+  //Show error with for edit and delete
+  var errorEdit = document.getElementById("errorEdit").innerText;
+  if (errorEdit === "errorEdit") {
+    alert("You can't edit this employee!");
+  }
+  var errorDelete = document.getElementById("errorDelete").innerText;
+  if (errorDelete === "errorDelete") {
+    alert("You can't delete this employee!");
+  }
+
 </script>
 </html>

@@ -9,6 +9,9 @@
   <meta charset="UTF-8">
   <title>Update Employee Page</title>
   <style>
+    label {
+      margin-left: 15px;
+    }
     .note
     {
       text-align: center;
@@ -100,7 +103,10 @@
             </div>
             <div class="form-group">
               <label>Name: </label>
-              <input type="text" class="form-control" th:value="''+${name}" required name="name"/>
+              <input type="text" class="form-control" th:value="''+${name}" required name="name" id="name" onfocus="setInterval(verifyName,10)"/>
+              <div class="form-text" id="formTextName">
+                Your name must only contains 2 more letters, and must not contain spaces, numbers, special characters, or emoji.
+              </div>
             </div>
             <div class="form-group">
               <label>Role: </label>
@@ -115,20 +121,95 @@
           <div class="col-md-6">
             <div class="form-group">
               <label>Phone: </label>
-              <input type="text" class="form-control" th:value="''+${phone}" required name="phone"/>
+              <input type="text" class="form-control" th:value="''+${phone}" required name="phone" id="phone" onfocus="setInterval(verifyPhone,10)"/>
+              <div class="form-text" id="formTextPhone">
+                Your phone number must be 10 number characters, and must not contain spaces, letters, special characters, or emoji.
+              </div>
             </div>
             <div class="form-group">
               <label>Email: </label>
-              <input type="text" class="form-control" th:value="''+${email}" required name="email"/>
+              <input type="text" class="form-control" th:value="''+${email}" required name="email" id="email" onfocus="setInterval(verifyEmail,10)"/>
+              <div class="form-text" id="formTextEmail">
+                Your email address must contain lower case letters or number, must have "." and "@", and must not contain spaces. For example: xyz@gmail.com
+              </div>
             </div>
           </div>
         </div>
         <div class="d-grid gap-2 col-6 mx-auto" style="padding-top: 2%">
-          <button type="submit" class="btn btn-outline-primary">Submit</button>
+          <button type="submit" class="btn btn-outline-primary" id="btnSubmit">Submit</button>
         </div>
       </div>
     </div>
   </div>
 </form>
 </body>
+<script>
+
+  //Verify Name
+  const regExName = /^[A-Z\S]{2,}$/;
+  function verifyName() {
+    var name = document.getElementById("name").value;
+    if (name.match(regExName)) {
+      document.getElementById("formTextName").style.color = "green";
+      document.getElementById("name").style.borderColor = "green";
+      document.getElementById("name").style.borderStyle = "solid";
+      document.getElementById("name").style.borderWidth = "medium";
+    } else {
+      document.getElementById("formTextName").style.color = "red";
+      document.getElementById("name").style.borderColor = "red";
+      document.getElementById("name").style.borderStyle = "solid";
+      document.getElementById("name").style.borderWidth = "medium"
+    }
+  }
+
+  //Verify Phone
+  const regExPhone = /^[0-9\S]{10}$/;
+  function verifyPhone() {
+    var phone = document.getElementById("phone").value;
+    if (phone.match(regExPhone)) {
+      document.getElementById("formTextPhone").style.color = "green";
+      document.getElementById("phone").style.borderColor = "green";
+      document.getElementById("phone").style.borderStyle = "solid";
+      document.getElementById("phone").style.borderWidth = "medium";
+    } else {
+      document.getElementById("formTextPhone").style.color = "red";
+      document.getElementById("phone").style.borderColor = "red";
+      document.getElementById("phone").style.borderStyle = "solid";
+      document.getElementById("phone").style.borderWidth = "medium"
+    }
+  }
+
+  //Verify Email
+  const regExEmail = /^[\Sa-z0-9._%+\-]+@[\Sa-z0-9.\-]+\.[\Sa-z]{2,}$/;
+  function verifyEmail() {
+    var email = document.getElementById("email").value;
+    if (email.match(regExEmail)) {
+      document.getElementById("formTextEmail").style.color = "green";
+      document.getElementById("email").style.borderColor = "green";
+      document.getElementById("email").style.borderStyle = "solid";
+      document.getElementById("email").style.borderWidth = "medium";
+    } else {
+      document.getElementById("formTextEmail").style.color = "red";
+      document.getElementById("email").style.borderColor = "red";
+      document.getElementById("email").style.borderStyle = "solid";
+      document.getElementById("email").style.borderWidth = "medium"
+    }
+  }
+
+  function enableBtn() {
+    var name = document.getElementById("name").value;
+    var phone = document.getElementById("phone").value;
+    var email = document.getElementById("email").value;
+    if (
+            name.match(regExName)&&
+            phone.match(regExPhone)&&
+            email.match(regExEmail)
+    ) {
+      document.getElementById("btnSubmit").disabled = false;
+    } else {
+      document.getElementById("btnSubmit").disabled = true;
+    }
+  }
+  setInterval(enableBtn,10);
+</script>
 </html>
