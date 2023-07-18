@@ -45,12 +45,19 @@ public class EmployeeController {
             HttpServletResponse response,
             Model model
     ) {
+
         employeeList = employeeRepository.findAll();
         for (int i=0;i<employeeList.size();i++) {
             if (employeeList.get(i).getName().compareToIgnoreCase(name)==0&&
             employeeList.get(i).getPassword().compareTo(getSHAHash(password))==0) {
                 session.setAttribute("nameS",employeeList.get(i).getName());
                 session.setAttribute("roleS",employeeList.get(i).getRole());
+
+                model.addAttribute("listEmployees",employeeList);
+                /** Khi login thanh cong thi nameS va roleS da duoc luu vao session
+                 * Nen nhung thao tac tra ve trang thi chi can goi ra
+                 * Vi da set san bien public o tren
+                 */
 
                 //Remember me
                 /** Username and Password of an Employee with checkbox will be saved
@@ -60,29 +67,28 @@ public class EmployeeController {
                 Cookie passwordCookie = new Cookie("passwordCookie",password);
                 Cookie rememberCookie = new Cookie("rememberCookie",remember);
                 if (remember.compareTo("remember")==0) {
-                    response.addCookie(usernameCookie);
-                    response.addCookie(passwordCookie);
-                    response.addCookie(rememberCookie);
                     usernameCookie.setMaxAge(60*60);
                     passwordCookie.setMaxAge(60*60);
                     rememberCookie.setMaxAge(60*60);
+                    response.addCookie(usernameCookie);
+                    response.addCookie(passwordCookie);
+                    response.addCookie(rememberCookie);
                     session.setAttribute("usernameCookie",usernameCookie.getValue());
                     session.setAttribute("passwordCookie",passwordCookie.getValue());
                     session.setAttribute("rememberCookie",rememberCookie.getValue());
                 } else if (remember.compareTo("noRemember")==0) {
-                    response.addCookie(usernameCookie);
-                    response.addCookie(passwordCookie);
-                    response.addCookie(rememberCookie);
                     usernameCookie.setMaxAge(0);
                     passwordCookie.setMaxAge(0);
                     rememberCookie.setMaxAge(0);
+                    response.addCookie(usernameCookie);
+                    response.addCookie(passwordCookie);
+                    response.addCookie(rememberCookie);
+                    session.removeAttribute("usernameCookie");
+                    session.removeAttribute("passwordCookie");
+                    session.removeAttribute("rememberCookie");
+                    session.setAttribute("rememberCookie","noRemember");
                 }
 
-                model.addAttribute("listEmployees",employeeList);
-                /** Khi login thanh cong thi nameS va roleS da duoc luu vao session
-                 * Nen nhung thao tac tra ve trang thi chi can goi ra
-                 * Vi da set san bien public o tren
-                 */
                 nameS = (String) session.getAttribute("nameS");
                 model.addAttribute("nameS",nameS);
                 roleS = (String) session.getAttribute("roleS");
