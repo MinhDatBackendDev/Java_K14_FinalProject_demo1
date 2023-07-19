@@ -48,11 +48,11 @@
                         <fieldset>
                             <div class="form-group">
                                 <input class="form-control" placeholder="Username" name="name" type="text"
-                                       th:value="${session.usernameCookie}" id="name" required>
+                                       th:value="${usernameCookie}" id="name">
                             </div>
                             <div class="input-group" style="display: flex">
                                 <input class="form-control" placeholder="Password" name="password" type="password"
-                                       th:value="${session.passwordCookie}" id="password" required>
+                                       th:value="${passwordCookie}" id="password">
 
                                 <button type="button" onclick="showPassword()" class="form-control" style="width: 30px; padding: 9px 10px 9px 6px;">
                                     <svg id="btnEye" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16">
@@ -67,7 +67,7 @@
                             </div>
                             <div class="checkbox">
                                 <label>
-                                    <input type="checkbox" id="checkbox" th:checked="${session.rememberCookie}=='remember'?'true':'false'"> Remember Me
+                                    <input type="checkbox" id="checkbox" th:checked="${rememberCookie}=='remember'?'true':'false'"> Remember Me
                                 </label>
                             </div>
                             <div>
@@ -77,7 +77,7 @@
                                 <div th:text="${error}" id="error"></div>
                                 <div th:text="${confirm}" id="confirm"></div>
                             </div>
-                            <input class="btn btn-lg btn-primary btn-block" type="submit" value="Login">
+                            <input class="btn btn-lg btn-primary btn-block" type="submit" id="btnSubmit" value="Login">
                         </fieldset>
                     </form>
                 </div>
@@ -121,6 +121,9 @@
 
   var checkbox = document.getElementById("checkbox");
   var remember = document.getElementById("remember");
+  if (checkbox.checked) {
+      remember.value = "remember";
+  }
   checkbox.addEventListener("change", () => {
       if (checkbox.checked) {
           remember.value = "remember";
@@ -129,8 +132,21 @@
       }
   });
 
+  function enableBtn() {
+      var name = document.getElementById("name").value;
+      var password = document.getElementById("password").value;
+      if (
+          name!==""&&
+          password!==""
+      ) {
+          document.getElementById("btnSubmit").disabled = false;
+      } else {
+          document.getElementById("btnSubmit").disabled = true;
+      }
+  }
+  setInterval(enableBtn,10);
+
   // document.getElementById("btnEye").addEventListener('click',showPassword,false);
   // document.getElementById("btnEyeSlash").addEventListener('click',showPassword,false);
-
 </script>
 </html>

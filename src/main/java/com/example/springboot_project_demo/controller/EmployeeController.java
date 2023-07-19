@@ -32,7 +32,22 @@ public class EmployeeController {
     String roleS;
 
     @GetMapping("/login")
-    public String login() {
+    public String viewLogin(
+            HttpServletRequest request,
+            Model model
+    ) {
+        Cookie[] cookies = request.getCookies();
+        for (int i=0;i<cookies.length;i++) {
+            if (cookies[i].getName().compareTo("usernameCookie")==0) {
+                model.addAttribute("usernameCookie",cookies[i].getValue());
+            }
+            if (cookies[i].getName().compareTo("passwordCookie")==0) {
+                model.addAttribute("passwordCookie",cookies[i].getValue());
+            }
+            if (cookies[i].getName().compareTo("rememberCookie")==0) {
+                model.addAttribute("rememberCookie",cookies[i].getValue());
+            }
+        }
         return "login";
     }
 
@@ -70,24 +85,14 @@ public class EmployeeController {
                     usernameCookie.setMaxAge(60*60);
                     passwordCookie.setMaxAge(60*60);
                     rememberCookie.setMaxAge(60*60);
-                    response.addCookie(usernameCookie);
-                    response.addCookie(passwordCookie);
-                    response.addCookie(rememberCookie);
-                    session.setAttribute("usernameCookie",usernameCookie.getValue());
-                    session.setAttribute("passwordCookie",passwordCookie.getValue());
-                    session.setAttribute("rememberCookie",rememberCookie.getValue());
                 } else if (remember.compareTo("noRemember")==0) {
                     usernameCookie.setMaxAge(0);
                     passwordCookie.setMaxAge(0);
                     rememberCookie.setMaxAge(0);
-                    response.addCookie(usernameCookie);
-                    response.addCookie(passwordCookie);
-                    response.addCookie(rememberCookie);
-                    session.removeAttribute("usernameCookie");
-                    session.removeAttribute("passwordCookie");
-                    session.removeAttribute("rememberCookie");
-                    session.setAttribute("rememberCookie","noRemember");
                 }
+                response.addCookie(usernameCookie);
+                response.addCookie(passwordCookie);
+                response.addCookie(rememberCookie);
 
                 nameS = (String) session.getAttribute("nameS");
                 model.addAttribute("nameS",nameS);
@@ -201,12 +206,6 @@ public class EmployeeController {
             model.addAttribute("roleS",roleS);
             return "home";
         }
-//        Employee employee = employeeRepository.findById(Long.parseLong(id))
-//                .orElseThrow(() -> new ResourceNotFoundException("Employee not exist with id:" + id));
-//        List<Employee> employeeListSearch = new ArrayList<>();
-//        employeeListSearch.add(employee);
-//        model.addAttribute("listUsers",employeeListSearch);
-//        return "home";
     }
 
     @GetMapping("/edit/{id}")
@@ -310,7 +309,9 @@ public class EmployeeController {
 
     // log out employee
     @GetMapping("/logout")
-    public String logout(HttpServletRequest request) {
+    public String logout(
+            HttpServletRequest request
+    ) {
         request.getSession().invalidate();
         return "login";
     }
