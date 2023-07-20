@@ -8,12 +8,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.http.HttpResponse;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -27,15 +25,27 @@ public class EmployeeController {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-    List<Employee> employeeList = new ArrayList<>();
-    String nameS;
-    String roleS;
+    private List<Employee> employeeList = new ArrayList<>();
+    private String nameS;
+    private String roleS;
+    private int check;
 
+    // view Login page and check session and cookie API
     @GetMapping("/login")
     public String viewLogin(
+            HttpSession session,
             HttpServletRequest request,
             Model model
     ) {
+        // check session
+        if (session.getAttribute("nameS")!=null) {
+            model.addAttribute("listEmployees",employeeList);
+            model.addAttribute("nameS",nameS);
+            model.addAttribute("roleS",roleS);
+            return "home";
+        }
+
+        // get cookie
         Cookie[] cookies = request.getCookies();
         for (int i=0;i<cookies.length;i++) {
             if (cookies[i].getName().compareTo("usernameCookie")==0) {
@@ -51,6 +61,7 @@ public class EmployeeController {
         return "login";
     }
 
+    // check Login API
     @PostMapping("/login")
     public String checkLogin(
             @RequestParam(name = "name") String name,
@@ -65,18 +76,9 @@ public class EmployeeController {
         for (int i=0;i<employeeList.size();i++) {
             if (employeeList.get(i).getName().compareToIgnoreCase(name)==0&&
             employeeList.get(i).getPassword().compareTo(getSHAHash(password))==0) {
-                session.setAttribute("nameS",employeeList.get(i).getName());
-                session.setAttribute("roleS",employeeList.get(i).getRole());
 
-                model.addAttribute("listEmployees",employeeList);
-                /** Khi login thanh cong thi nameS va roleS da duoc luu vao session
-                 * Nen nhung thao tac tra ve trang thi chi can goi ra
-                 * Vi da set san bien public o tren
-                 */
-
-                //Remember me
-                /** Username and Password of an Employee with checkbox will be saved
-                 *
+                /** Remember me
+                 * Username and Password of an Employee with checkbox will be saved
                  */
                 Cookie usernameCookie = new Cookie("usernameCookie",name);
                 Cookie passwordCookie = new Cookie("passwordCookie",password);
@@ -94,6 +96,13 @@ public class EmployeeController {
                 response.addCookie(passwordCookie);
                 response.addCookie(rememberCookie);
 
+                /** Khi login thanh cong thi employeeList, nameS va roleS da duoc luu vao session
+                 * Nen nhung thao tac tra ve trang home thi chi can goi ra ngoai tru delete
+                 * Vi da set san variable public o tren
+                 */
+                session.setAttribute("nameS",employeeList.get(i).getName());
+                session.setAttribute("roleS",employeeList.get(i).getRole());
+                model.addAttribute("listEmployees",employeeList);
                 nameS = (String) session.getAttribute("nameS");
                 model.addAttribute("nameS",nameS);
                 roleS = (String) session.getAttribute("roleS");
@@ -101,6 +110,10 @@ public class EmployeeController {
                 return "home";
             }
         }
+
+        model.addAttribute("usernameCookie",name);
+        model.addAttribute("passwordCookie",password);
+        model.addAttribute("rememberCookie",remember);
         model.addAttribute("error","Wrong username or password!");
         return "login";
     }
@@ -131,7 +144,6 @@ public class EmployeeController {
             model.addAttribute("error","Please login!");
             return "login";
         }
-        employeeList = employeeRepository.findAll();
         model.addAttribute("listEmployees",employeeList);
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
@@ -142,7 +154,7 @@ public class EmployeeController {
     public String viewRegister(Model model,
                                HttpSession session) {
         if (session.getAttribute("nameS")==null) {
-            model.addAttribute("formName", "Register");
+            model.addAttribute("formName", "Registration");
             return "register";
         } else {
             model.addAttribute("formName", "New Employee");
@@ -160,6 +172,33 @@ public class EmployeeController {
                                  Model model,
                                  HttpSession session) {
 
+        // check employee is existed or not non logged in account
+        employeeList = employeeRepository.findAll(); //get the list because of non logged in account
+        check = 0;
+        for (int i=0; i<employeeList.size(); i++) {
+            if (employeeList.get(i).getPhone().compareTo(phone)==0) {
+                check++;
+                model.addAttribute("invalidPhone",phone+" is already in used!");
+            }
+            if (employeeList.get(i).getEmail().compareTo(email)==0) {
+                check++;
+                model.addAttribute("invalidEmail",email+" is already in used!");
+            }
+        }
+        if (check > 0) {
+            model.addAttribute("name",name);
+            model.addAttribute("phone",phone);
+            model.addAttribute("email",email);
+            model.addAttribute("password",password);
+            model.addAttribute("role",role);
+            if (session.getAttribute("nameS")==null) {
+                model.addAttribute("formName", "Registration");
+            } else {
+                model.addAttribute("formName", "New Employee");
+            }
+            return "register";
+        }
+
         Employee newEmployee = new Employee();
         newEmployee.setName(name);
         newEmployee.setPhone(phone);
@@ -167,6 +206,7 @@ public class EmployeeController {
         newEmployee.setPassword(getSHAHash(password));
         newEmployee.setRole(role);
         employeeRepository.save(newEmployee);
+
         if (session.getAttribute("nameS")==null) {
             model.addAttribute("confirm","Create account successfully!");
             return "login";
@@ -176,6 +216,7 @@ public class EmployeeController {
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
         model.addAttribute("listEmployees",employeeList);
+        model.addAttribute("confirmCreate","Create new employee with name is "+name+" successfully!");
         return "home";
     }
 
@@ -189,7 +230,6 @@ public class EmployeeController {
             return "login";
         }
         if (name=="") {
-            List<Employee> employeeList = employeeRepository.findAll();
             model.addAttribute("nameS",nameS);
             model.addAttribute("roleS",roleS);
             model.addAttribute("listEmployees",employeeList);
@@ -201,7 +241,7 @@ public class EmployeeController {
                     employeeListSearch.add(employeeList.get(i));
                 }
             }
-            model.addAttribute("listUsers",employeeListSearch);
+            model.addAttribute("listEmployees",employeeListSearch);
             model.addAttribute("nameS",nameS);
             model.addAttribute("roleS",roleS);
             return "home";
@@ -224,7 +264,6 @@ public class EmployeeController {
         String email = updateEmployee.getEmail();
         String role = updateEmployee.getRole();
 
-        employeeList = employeeRepository.findAll();
         model.addAttribute("listEmployees",employeeList);
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
@@ -260,6 +299,33 @@ public class EmployeeController {
             model.addAttribute("error","Please login!");
             return "login";
         }
+
+        // check employee is existed or not with logged in account
+        check = 0;
+        for (int i=0; i<employeeList.size(); i++) {
+            if (
+                    employeeList.get(i).getId()!=id&&
+                    employeeList.get(i).getPhone().compareTo(phone)==0
+            ) {
+                model.addAttribute("invalidPhone",phone+" is already in used!");
+                check++;
+            }
+            if (
+                    employeeList.get(i).getId()!=id&&
+                    employeeList.get(i).getEmail().compareTo(email)==0
+            ) {
+                model.addAttribute("invalidEmail",email+" is already in used!");
+                check++;
+            }
+        }
+        if (check > 0) {
+            model.addAttribute("name",name);
+            model.addAttribute("phone",phone);
+            model.addAttribute("email",email);
+            model.addAttribute("role",role);
+            return "update";
+        }
+
         Employee updateEmployee = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not exist with id: " + id));
         updateEmployee.setName(name);
@@ -272,6 +338,10 @@ public class EmployeeController {
         model.addAttribute("listEmployees",employeeList);
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
+        model.addAttribute(
+                "confirmEdit",
+                "Edit employee with name is "+name+" successfully!"
+        );
         return "home";
     }
 
@@ -286,10 +356,11 @@ public class EmployeeController {
         }
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not exist with id: " + id));
+        String name = employee.getName();
 
         // Delete with role
         if (
-                employee.getName().compareTo(nameS)==0
+                name.compareTo(nameS)==0
         ) {
             model.addAttribute("errorDelete","errorDelete");
             return "home";
@@ -300,10 +371,15 @@ public class EmployeeController {
 
         employeeRepository.delete(employee);
 
+        // Luu y delete xong thi phai tim lai
         employeeList = employeeRepository.findAll();
         model.addAttribute("listEmployees",employeeList);
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
+        model.addAttribute(
+                "confirmDelete",
+                "Delete employee with name is "+name+" successfully!"
+        );
         return "home";
     }
 
@@ -332,7 +408,7 @@ public class EmployeeController {
             Model model,
             HttpSession session
     ) {
-        employeeList = employeeRepository.findAll();
+
         for (int i=0;i<employeeList.size();i++) {
             if (
                     employeeList.get(i).getName().compareToIgnoreCase(name)==0&&
@@ -345,7 +421,11 @@ public class EmployeeController {
                 return "renewPassword";
             }
         }
-        model.addAttribute("fakeEmployee","fakeEmployee");
+        model.addAttribute("name",name);
+        model.addAttribute("phone",phone);
+        model.addAttribute("email",email);
+        model.addAttribute("role",role);
+        model.addAttribute("errorEmployee","fakeEmployee");
         return "confirmEmployee";
     }
 
@@ -358,7 +438,7 @@ public class EmployeeController {
             HttpServletRequest request
     ){
         if (session.getAttribute("realEmployeeId")==null) {
-            model.addAttribute("fakeEmployee","noEmployee");
+            model.addAttribute("errorEmployee","noEmployee");
             return "confirmEmployee";
         }
         Long id = (Long) session.getAttribute("realEmployeeId");

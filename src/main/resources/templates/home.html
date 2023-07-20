@@ -78,9 +78,12 @@
   </div>
 </nav>
 <h2 class="container" style="padding-top: 20px" th:text="'Welcome, '+${nameS}+'!'"></h2>
-<div style="display: none" th:text="''+${roleS}" th:id="roleS"></div>
-<div style="display: none" th:text="''+${errorEdit}" th:id="errorEdit"></div>
-<div style="display: none" th:text="''+${errorDelete}" th:id="errorDelete"></div>
+<div style="display: none" th:text="${roleS}" th:id="roleS"></div>
+<div style="display: none" th:text="${errorEdit}" th:id="errorEdit"></div>
+<div style="display: none" th:text="${errorDelete}" th:id="errorDelete"></div>
+<div style="display: none" th:text="${confirmEdit}" th:id="confirmEdit"></div>
+<div style="display: none" th:text="${confirmDelete}" th:id="confirmDelete"></div>
+<div style="display: none" th:text="${confirmCreate}" th:id="confirmCreate"></div>
 <form action="/api/v1/employees/searchEmployee" method="POST" class="container">
   <div class="col-6 mt-3">
     <div class="input-group mb-3">
@@ -236,6 +239,20 @@
   var errorDelete = document.getElementById("errorDelete").innerText;
   if (errorDelete === "errorDelete") {
     alert("You can't delete this employee!");
+  }
+
+  //Show confirm edit,delete and create
+  var confirmEdit = document.getElementById("confirmEdit").innerText;
+  if (confirmEdit !== "") {
+    alert(confirmEdit);
+  }
+  var confirmDelete = document.getElementById("confirmDelete").innerText;
+  if (confirmDelete !== "") {
+    alert(confirmDelete);
+  }
+  var confirmCreate = document.getElementById("confirmCreate").innerText;
+  if (confirmCreate !== "") {
+    alert(confirmCreate);
   }
 
 </script>
