@@ -38,10 +38,6 @@
     padding-left: 10px;
   }
 
-  #text {
-    padding-top: 20px;
-  }
-
   #searchText {
     padding: 0 10px 10px 10px;
   }
@@ -72,26 +68,32 @@
     display: none;
   }
 
+  #text.container {
+    margin-top: 20px;
+    height: 65px;
+  }
+
+  #welcomeText {
+    height: 100%;
+    display: flex;
+    float: left;
+    text-align: center;
+    font-size: 30px;
+  }
+
+  .right-content {
+    display: block;
+    float: right;
+  }
+
   .notifications {
+    margin-top: 7px;
     padding: 1px 4px 4px 2px;
     background-color: #ced4da;
     border-radius: 10px;
     box-sizing: border-box;
-    float: right;
-    -webkit-animation: cssAnimation 10s forwards;
-    animation: cssAnimation 10s forwards;
-  }
-  .errors, .confirms {
-    background-color: white;
-    border-radius: 8px;
-    box-sizing: border-box;
-    font-size: 18px;
-  }
-  .errors {
-    color: crimson;
-  }
-  .confirms {
-    color: darkseagreen;
+    -webkit-animation: cssAnimation 5s forwards;
+    animation: cssAnimation 5s forwards;
   }
 
   @keyframes cssAnimation {
@@ -99,15 +101,28 @@
     90%  {opacity: 1;}
     100% {opacity: 0;}
   }
+
   @-webkit-keyframes cssAnimation {
     0%   {opacity: 1;}
     90%  {opacity: 1;}
     100% {opacity: 0;}
   }
 
-  #welcomeText {
-    font-size: 30px;
-    font-weight: normal;
+  .errors, .confirms {
+    background-color: white;
+    border-radius: 10px;
+    box-sizing: border-box;
+    padding: 10px;
+    text-align: center;
+    font-size: 18px;
+  }
+
+  .errors {
+    color: crimson;
+  }
+
+  .confirms {
+    color: darkseagreen;
   }
 </style>
 <body>
@@ -136,22 +151,26 @@
   </div>
 </nav>
 <div class="container" id="text">
-  <span id="welcomeText" th:text="'Welcome, '+${nameS}+'!'">Hello World!</span>
-  <span class="notifications">
-  <div class="errors">
-    <div th:text="${errorEdit}" th:id="errorEdit"></div>
-    <div th:text="${errorDelete}" th:id="errorDelete"></div>
+  <div id="welcomeText" th:text="'Welcome, '+${nameS}+'!'">Welcome</div>
+  <div class="right-content">
+    <div class="notifications" id="errors">
+      <div class="errors">
+        <div th:text="${errorEdit}" id="errorEdit">errorEdit</div>
+        <div th:text="${errorDelete}" id="errorDelete"></div>
+      </div>
+    </div>
+    <div class="notifications" id="confirms">
+      <div class="confirms">
+        <div th:text="${confirmEdit}" id="confirmEdit">confirmEdit</div>
+        <div th:text="${confirmDelete}" id="confirmDelete"></div>
+        <div th:text="${confirmCreate}" id="confirmCreate"></div>
+      </div>
+    </div>
   </div>
-  <div class="confirms">
-    <div th:text="${confirmEdit}" th:id="confirmEdit"></div>
-    <div th:text="${confirmDelete}" th:id="confirmDelete"></div>
-    <div th:text="${confirmCreate}" th:id="confirmCreate"></div>
+  <div class="page-info">
+    <div th:text="${pagePosition}" id="pagePosition"></div>
+    <div th:text="${roleS}" id="roleS"></div>
   </div>
-  </span>
-</div>
-<div class="page-info">
-  <div th:text="${pagePosition}" th:id="pagePosition"></div>
-  <div th:text="${roleS}" th:id="roleS"></div>
 </div>
 <form class="container" action="/api/v1/employees/searchEmployee" method="POST">
   <div class="col-6 mt-3">
@@ -169,7 +188,7 @@
   <div class="d-flex">
     <form action="/api/v1/employees/register" method="get">
       <div class="btn-add">
-        <button class="btn btn-outline-primary" type="submit" th:id="btnAdd">
+        <button class="btn btn-outline-primary" type="submit" id="btnAdd">
           <span class="plus">+</span>Add new Employee
         </button>
       </div>
@@ -303,6 +322,31 @@
       })
     }
     loadButton();
+  }
+
+  //Check errors to show
+  errorEdit = document.getElementById("errorEdit").innerText;
+  errorDelete = document.getElementById("errorDelete").innerText;
+  if (
+          errorEdit === "" &&
+          errorDelete === ""
+  ) {
+    document.getElementById("errors").style.display = 'none';
+  } else {
+    document.getElementById("errors").style.display = 'block';
+  }
+  //Check confirms to show
+  confirmEdit = document.getElementById("confirmEdit").innerText;
+  confirmDelete = document.getElementById("confirmDelete").innerText;
+  confirmCreate = document.getElementById("confirmCreate").innerText;
+  if (
+          confirmEdit === "" &&
+          confirmDelete === "" &&
+          confirmCreate === ""
+  ) {
+    document.getElementById("confirms").style.display = 'none';
+  } else {
+    document.getElementById("confirms").style.display = 'block';
   }
 
 </script>

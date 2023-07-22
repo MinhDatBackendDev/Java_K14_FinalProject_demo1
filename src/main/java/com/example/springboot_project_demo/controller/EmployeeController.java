@@ -152,6 +152,8 @@ public class EmployeeController {
             model.addAttribute("error","Please login!");
             return "login";
         }
+        // Keep pagePosition for login and search
+        model.addAttribute("pagePosition",keepPagePosition(idS,employeeList));
         model.addAttribute("listEmployees",employeeList);
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
@@ -225,7 +227,7 @@ public class EmployeeController {
 
         // Keep pagePosition for delete, edit and create
         int limit = 5;
-        long pagePosition = (long) Math.ceil((employeeList.size())/limit)+1;
+        long pagePosition = (long) Math.ceil((float)employeeList.size()/limit);
         model.addAttribute("pagePosition",pagePosition);
 
         model.addAttribute("nameS",nameS);
@@ -503,12 +505,10 @@ public class EmployeeController {
         int limit = 5;
         for (int i=0; i<employeeList.size(); i++) {
             if (employeeList.get(i).getId()==employeeId) {
-                pagePosition = (long) Math.ceil(((i+1)/limit))+1;
+                pagePosition = (long) Math.ceil((float)(i+1)/limit);
             }
         }
         return pagePosition;
     }
-
-
 
 }
