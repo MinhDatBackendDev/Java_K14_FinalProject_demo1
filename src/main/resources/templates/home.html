@@ -69,7 +69,7 @@
   }
 
   #text.container {
-    margin-top: 20px;
+    margin-top: 10px;
     height: 65px;
   }
 
@@ -92,8 +92,8 @@
     background-color: #ced4da;
     border-radius: 10px;
     box-sizing: border-box;
-    -webkit-animation: cssAnimation 5s forwards;
-    animation: cssAnimation 5s forwards;
+    -webkit-animation: cssAnimation 10s forwards;
+    animation: cssAnimation 10s forwards;
   }
 
   @keyframes cssAnimation {
@@ -151,17 +151,18 @@
   </div>
 </nav>
 <div class="container" id="text">
-  <div id="welcomeText" th:text="'Welcome, '+${nameS}+'!'">Welcome</div>
+  <div id="welcomeText" th:text="'Welcome, '+${nameS}+'!'"></div>
   <div class="right-content">
     <div class="notifications" id="errors">
       <div class="errors">
-        <div th:text="${errorEdit}" id="errorEdit">errorEdit</div>
+        <div th:text="${errorEdit}" id="errorEdit"></div>
         <div th:text="${errorDelete}" id="errorDelete"></div>
+        <div th:text="${errorSearch}" id="errorSearch"></div>
       </div>
     </div>
     <div class="notifications" id="confirms">
       <div class="confirms">
-        <div th:text="${confirmEdit}" id="confirmEdit">confirmEdit</div>
+        <div th:text="${confirmEdit}" id="confirmEdit"></div>
         <div th:text="${confirmDelete}" id="confirmDelete"></div>
         <div th:text="${confirmCreate}" id="confirmCreate"></div>
       </div>
@@ -207,7 +208,7 @@
     </tr>
     </thead>
     <tbody>
-    <th:block th:each="employee : ${listEmployees}">
+    <th:block th:each="employee : ${employeeList}">
       <tr th:name="employee">
         <td>[[${employee.id}]]</td>
         <td>[[${employee.name}]]</td>
@@ -225,9 +226,7 @@
     </tbody>
   </table>
 </div>
-<ul class="listPage">
-
-</ul>
+<ul class="listPage"></ul>
 </body>
 <script>
   // Pagination js
@@ -283,10 +282,9 @@
     loadItem();
   }
 
-  //Load button by Role js
+  // Load button by Role js
   let list_btn_edit = document.getElementsByName("btnEdit");
   let list_btn_delete = document.getElementsByName("btnDelete");
-
   if (document.getElementById("roleS").value==="Staff") {
     document.getElementById("btnAdd").disabled=true;
     function loadButton() {
@@ -324,18 +322,22 @@
     loadButton();
   }
 
-  //Check errors to show
+  // Check errors and confirms to show
   errorEdit = document.getElementById("errorEdit").innerText;
   errorDelete = document.getElementById("errorDelete").innerText;
+  errorSearch = document.getElementById("errorSearch").innerText;
   if (
           errorEdit === "" &&
-          errorDelete === ""
+          errorDelete === "" &&
+          errorSearch === ""
   ) {
     document.getElementById("errors").style.display = 'none';
   } else {
     document.getElementById("errors").style.display = 'block';
   }
-  //Check confirms to show
+  if (errorSearch !== "") {
+    document.querySelector('.listPage').style.display = 'none';
+  }
   confirmEdit = document.getElementById("confirmEdit").innerText;
   confirmDelete = document.getElementById("confirmDelete").innerText;
   confirmCreate = document.getElementById("confirmCreate").innerText;

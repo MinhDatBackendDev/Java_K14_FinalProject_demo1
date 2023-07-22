@@ -29,24 +29,27 @@ public class EmployeeController {
     private String nameS;
     private String roleS;
     private int check;
-    private long idS;
+    private long idS; // idS for keeping the page position
+    private int limit = 5; // This limit must match the limit in the pagination js
 
-    // view Login page and check session and cookie API
+    // View Login page and check session and cookie API
     @GetMapping("/login")
     public String viewLogin(
             HttpSession session,
             HttpServletRequest request,
             Model model
     ) {
-        // check session
+        // Check session when logged-in user try to get back to the login page
         if (session.getAttribute("nameS")!=null) {
-            model.addAttribute("listEmployees",employeeList);
+            // Keep page position that has the user
+            model.addAttribute("pagePosition",keepPagePosition(idS,employeeList));
+            // Return all information for the home page
+            model.addAttribute("employeeList",employeeList);
             model.addAttribute("nameS",nameS);
             model.addAttribute("roleS",roleS);
             return "home";
         }
-
-        // get cookie
+        // Get cookie to fill the form
         Cookie[] cookies = request.getCookies();
         for (int i=0;i<cookies.length;i++) {
             if (cookies[i].getName().compareTo("usernameCookie")==0) {
@@ -62,7 +65,7 @@ public class EmployeeController {
         return "login";
     }
 
-    // check Login API
+    // Check Login API
     @PostMapping("/login")
     public String checkLogin(
             @RequestParam(name = "name") String name,
@@ -72,12 +75,11 @@ public class EmployeeController {
             HttpServletResponse response,
             Model model
     ) {
-
+        // Get the employee list to check login
         employeeList = employeeRepository.findAll();
-        for (int i=0;i<employeeList.size();i++) {
+        for (int i=0; i<employeeList.size(); i++) {
             if (employeeList.get(i).getName().compareToIgnoreCase(name)==0&&
             employeeList.get(i).getPassword().compareTo(getSHAHash(password))==0) {
-
                 /** Remember me
                  * Username and Password of an Employee with checkbox will be saved
                  */
@@ -97,72 +99,114 @@ public class EmployeeController {
                 response.addCookie(passwordCookie);
                 response.addCookie(rememberCookie);
 
-                /** Khi login thanh cong thi employeeList, nameS va roleS da duoc luu vao session
-                 * Nen nhung thao tac tra ve trang home thi chi can goi ra ngoai tru delete
-                 * Vi da set san variable public o tren
-                 */
+                // Set session attributes
                 session.setAttribute("nameS",employeeList.get(i).getName());
                 session.setAttribute("roleS",employeeList.get(i).getRole());
-
                 session.setAttribute("idS",employeeList.get(i).getId());
+                nameS = (String) session.getAttribute("nameS");
                 idS = (long) session.getAttribute("idS");
+                roleS = (String) session.getAttribute("roleS");
 
                 // Keep pagePosition for login and search
                 model.addAttribute("pagePosition",keepPagePosition(idS,employeeList));
-
-                model.addAttribute("listEmployees",employeeList);
-                nameS = (String) session.getAttribute("nameS");
+                model.addAttribute("employeeList",employeeList);
                 model.addAttribute("nameS",nameS);
-                roleS = (String) session.getAttribute("roleS");
                 model.addAttribute("roleS",roleS);
                 return "home";
             }
         }
-
+        // Return all inputs that user entered
+        model.addAttribute("error","Wrong username or password!");
         model.addAttribute("usernameCookie",name);
         model.addAttribute("passwordCookie",password);
         model.addAttribute("rememberCookie",remember);
-        model.addAttribute("error","Wrong username or password!");
         return "login";
     }
 
-    // SHA Hash code
-    public static String getSHAHash(String input) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
-            byte[] messageDigest = md.digest(input.getBytes());
-            return convertByteToHex(messageDigest);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+    // View Forgot password page API
+    @GetMapping("/forgot-Password")
+    public String viewConfirmEmployee() {
+        return "confirmEmployee";
     }
 
-    public static String convertByteToHex(byte[] data) {
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < data.length; i++) {
-            sb.append(Integer.toString((data[i] & 0xff) + 0x100, 16).substring(1));
+    // check Employee forgot password existed
+    @PostMapping("/confirmEmployee")
+    public String confirmEmployee(
+            @RequestParam("name") String name,
+            @RequestParam("phone") String phone,
+            @RequestParam("email") String email,
+            @RequestParam("role") String role,
+            Model model,
+            HttpSession session
+    ) {
+        // Verify user is a real employee or not
+        for (int i=0;i<employeeList.size();i++) {
+            if (
+                    employeeList.get(i).getName().compareToIgnoreCase(name)==0&&
+                            employeeList.get(i).getPhone().compareToIgnoreCase(phone)==0&&
+                            employeeList.get(i).getEmail().compareTo(email)==0&&
+                            employeeList.get(i).getRole().compareTo(role)==0
+            ) {
+                Long realEmployeeId = employeeList.get(i).getId();
+                session.setAttribute("realEmployeeId",realEmployeeId);
+                return "renewPassword";
+            }
         }
-        return sb.toString();
+        // Return all inputs that user entered
+        model.addAttribute("errorEmployee","fakeEmployee");
+        model.addAttribute("name",name);
+        model.addAttribute("phone",phone);
+        model.addAttribute("email",email);
+        model.addAttribute("role",role);
+        return "confirmEmployee";
     }
 
+    // Renew password API
+    @PostMapping("/renewPassword")
+    public String confirmEmployee(
+            @RequestParam("newPassword") String newPassword,
+            Model model,
+            HttpSession session,
+            HttpServletRequest request
+    ){
+        // Prevent user from skipping the verification
+        if (session.getAttribute("realEmployeeId")==null) {
+            model.addAttribute("errorEmployee","noEmployee");
+            return "confirmEmployee";
+        }
+        Long id = (Long) session.getAttribute("realEmployeeId");
+        Employee renewPasswordEmployee = employeeRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Employee not exist with id: " + id));
+        renewPasswordEmployee.setPassword(getSHAHash(newPassword));
+        employeeRepository.save(renewPasswordEmployee);
+        request.getSession().invalidate();
+        model.addAttribute("confirm","Renew Password Successfully!");
+        return "login";
+    }
+
+    // View home page API
     @GetMapping( "/home")
     public String viewHome(Model model,
                            HttpSession session) {
+        // Prevent user from skipping login
         if (session.getAttribute("nameS")==null) {
             model.addAttribute("error","Please login!");
             return "login";
         }
-        // Keep pagePosition for login and search
+        // Keep page position that has the user
         model.addAttribute("pagePosition",keepPagePosition(idS,employeeList));
-        model.addAttribute("listEmployees",employeeList);
+        // Return all information for the home page
+        model.addAttribute("employeeList",employeeList);
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
         return "home";
     }
 
+    // View register page API
     @GetMapping("/register")
     public String viewRegister(Model model,
                                HttpSession session) {
+        // Show the name of the form depending on session
         if (session.getAttribute("nameS")==null) {
             model.addAttribute("formName", "Registration");
             return "register";
@@ -172,7 +216,7 @@ public class EmployeeController {
         }
     }
 
-    // build create employee REST API
+    // Create new employee API
     @PostMapping("/register")
     public String createEmployee(@RequestParam(name = "name") String name,
                                  @RequestParam(name = "phone") String phone,
@@ -181,9 +225,8 @@ public class EmployeeController {
                                  @RequestParam(name = "role") String role,
                                  Model model,
                                  HttpSession session) {
-
-        // check employee is existed or not non logged in account
-        employeeList = employeeRepository.findAll(); //get the list because of non logged in account
+        // Check employee is existed or not whether user logged in or not
+        employeeList = employeeRepository.findAll(); // Get the list to check whether user logged-in or not
         check = 0;
         for (int i=0; i<employeeList.size(); i++) {
             if (employeeList.get(i).getPhone().compareTo(phone)==0) {
@@ -196,11 +239,13 @@ public class EmployeeController {
             }
         }
         if (check > 0) {
+            // Return all inputs that user entered and the errors above
             model.addAttribute("name",name);
             model.addAttribute("phone",phone);
             model.addAttribute("email",email);
             model.addAttribute("password",password);
             model.addAttribute("role",role);
+            // Return the name of the form depending on session
             if (session.getAttribute("nameS")==null) {
                 model.addAttribute("formName", "Registration");
             } else {
@@ -208,7 +253,7 @@ public class EmployeeController {
             }
             return "register";
         }
-
+        // Save the new employee
         Employee newEmployee = new Employee();
         newEmployee.setName(name);
         newEmployee.setPhone(phone);
@@ -216,101 +261,102 @@ public class EmployeeController {
         newEmployee.setPassword(getSHAHash(password));
         newEmployee.setRole(role);
         employeeRepository.save(newEmployee);
-
+        // Return to login page with non logged-in user
         if (session.getAttribute("nameS")==null) {
             model.addAttribute("confirm","Create account successfully!");
             return "login";
         }
-
-        // Refresh the list after add
+        // Refresh the list after change
         employeeList = employeeRepository.findAll();
-
-        // Keep pagePosition for delete, edit and create
-        int limit = 5;
+        // Return the page position that has the new employee
         long pagePosition = (long) Math.ceil((float)employeeList.size()/limit);
         model.addAttribute("pagePosition",pagePosition);
-
+        // Return all information for the home page and the confirmation of creating new employee
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
-        model.addAttribute("listEmployees",employeeList);
+        model.addAttribute("employeeList",employeeList);
         model.addAttribute("confirmCreate","Create new employee with name is "+name+" successfully!");
         return "home";
     }
 
-    // build get employee by id REST API
+    // Search employees by name API
     @RequestMapping(value = "/searchEmployee", method = RequestMethod.POST)
     public String getEmployeeByName(@RequestParam ("nameSearch") String name,
                                     Model model,
                                     HttpSession session){
+        // Prevent user from skipping login
         if (session.getAttribute("nameS")==null) {
             model.addAttribute("error","Please login!");
             return "login";
         }
-        if (name=="") {
+        // Click the button "Search" with no input
+        if (name.compareTo("")==0) {
+            // Return all information for the home page
             model.addAttribute("nameS",nameS);
             model.addAttribute("roleS",roleS);
-            model.addAttribute("listEmployees",employeeList);
-
-            // Keep pagePosition for login and search
+            model.addAttribute("employeeList",employeeList);
+            // Keep page position that has the user
             model.addAttribute("pagePosition",keepPagePosition(idS,employeeList));
-
             return "home";
         } else {
+            // Return the list of employees with the same name (ignore case)
             List<Employee> employeeListSearch = new ArrayList<>();
             for (int i=0;i<employeeList.size();i++) {
                 if (employeeList.get(i).getName().compareToIgnoreCase(name)==0) {
                     employeeListSearch.add(employeeList.get(i));
                 }
             }
-
-            // Keep pagePosition for login and search
+            // If the employee is not found, return the error in the home page
+            if (employeeListSearch.size()==0) {
+                model.addAttribute("errorSearch","Employee with name is "+name+" is not found!");
+            }
+            // Return all searches in the first page
             model.addAttribute("pagePosition",1);
-
-            model.addAttribute("listEmployees",employeeListSearch);
+            // Return all information for the home page
+            model.addAttribute("employeeList",employeeListSearch);
             model.addAttribute("nameS",nameS);
             model.addAttribute("roleS",roleS);
             return "home";
         }
     }
 
+    // View update page API
     @GetMapping("/edit/{id}")
     public String viewUpdate(@PathVariable long id,
                              Model model,
                              HttpSession session
     ) {
+        // Prevent user from skipping login
         if (session.getAttribute("nameS")==null) {
             model.addAttribute("error","Please login!");
             return "login";
         }
-
+        // Find the employee by id and get all information
         Employee updateEmployee = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not exist with id: " + id));
         String name = updateEmployee.getName();
         String phone = updateEmployee.getPhone();
         String email = updateEmployee.getEmail();
         String role = updateEmployee.getRole();
-
-        model.addAttribute("listEmployees",employeeList);
+        // Return all information for the home page if error occurs
+        model.addAttribute("employeeList",employeeList);
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
-
-        // Edit with role
+        // Check the role and the name of the user in order to prevent user from editing himself and higher role employees
         if (
                 name.compareTo(nameS)==0
         ) {
             model.addAttribute("errorEdit","You can not edit this employee!");
-
-            // Keep pagePosition for delete, edit and create
+            // Keep page position that user is doing editing
             model.addAttribute("pagePosition",keepPagePosition(id,employeeList));
             return "home";
         } else if (roleS.compareTo("Manager") == 0 && role.compareTo("Staff") != 0) {
             model.addAttribute("errorEdit","You can not edit this employee!");
-
-            // Keep pagePosition for delete, edit and create
+            // Keep page position that user is doing editing
             model.addAttribute("pagePosition",keepPagePosition(id,employeeList));
             return "home";
         }
-
+        // Send all employee's information for updating
         model.addAttribute("name",name);
         model.addAttribute("phone",phone);
         model.addAttribute("email",email);
@@ -318,7 +364,7 @@ public class EmployeeController {
         return "update";
     }
 
-    // build update employee REST API
+    // Update employee API
     @PostMapping("/update/{id}")
     public String updateEmployee(@PathVariable long id,
                                  @RequestParam("name") String name,
@@ -327,15 +373,14 @@ public class EmployeeController {
                                  @RequestParam("role") String role,
                                  Model model,
                                  HttpSession session) {
+        // Prevent user from skipping login
         if (session.getAttribute("nameS")==null) {
             model.addAttribute("error","Please login!");
             return "login";
         }
-
-        // Keep pagePosition for delete, edit and create
+        // Keep page position that user is doing editing
         model.addAttribute("pagePosition",keepPagePosition(id,employeeList));
-
-        // check employee is existed or not with logged in account
+        // check employee is existed or not with logged-in user
         check = 0;
         for (int i=0; i<employeeList.size(); i++) {
             if (
@@ -354,13 +399,14 @@ public class EmployeeController {
             }
         }
         if (check > 0) {
+            // Return all inputs that user entered in the form if error occurs
             model.addAttribute("name",name);
             model.addAttribute("phone",phone);
             model.addAttribute("email",email);
             model.addAttribute("role",role);
             return "update";
         }
-
+        // Update new employee
         Employee updateEmployee = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not exist with id: " + id));
         updateEmployee.setName(name);
@@ -368,10 +414,10 @@ public class EmployeeController {
         updateEmployee.setEmail(email);
         updateEmployee.setRole(role);
         employeeRepository.save(updateEmployee);
-
-        //Refresh the list after edit
+        // Refresh the list after editing
         employeeList = employeeRepository.findAll();
-        model.addAttribute("listEmployees",employeeList);
+        // Return all information for the home page and the confirmation
+        model.addAttribute("employeeList",employeeList);
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
         model.addAttribute(
@@ -381,44 +427,46 @@ public class EmployeeController {
         return "home";
     }
 
-    // build delete employee REST API
+    // Delete employee API
     @GetMapping("/delete/{id}")
     public String deleteEmployee(@PathVariable long id,
                                  Model model,
                                  HttpSession session){
+        // Prevent user from skipping login
         if (session.getAttribute("nameS")==null) {
             model.addAttribute("error","Please login!");
             return "login";
         }
+        // Find the employee by id for checking and deleting
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not exist with id: " + id));
         String name = employee.getName();
-
-        // Keep pagePosition for delete, edit and create
+        // Keep page position that user is doing deleting
         model.addAttribute("pagePosition",keepPagePosition(id,employeeList));
-
-        // Delete with role
+        // Check the role and the name of the user in order to prevent user from deleting himself and higher role employees
         if (
                 name.compareTo(nameS)==0
         ) {
+            // Return all information for the home page and the error
             model.addAttribute("errorDelete","You can not delete this employee!");
-            model.addAttribute("listEmployees",employeeList);
+            model.addAttribute("employeeList",employeeList);
             model.addAttribute("nameS",nameS);
             model.addAttribute("roleS",roleS);
             return "home";
         } else if (roleS.compareTo("Manager") == 0 && employee.getRole().compareTo("Staff") != 0) {
+            // Return all information for the home page and the error
             model.addAttribute("errorDelete","You can not delete this employee!");
-            model.addAttribute("listEmployees",employeeList);
+            model.addAttribute("employeeList",employeeList);
             model.addAttribute("nameS",nameS);
             model.addAttribute("roleS",roleS);
             return "home";
         }
-
+        // Delete the employee
         employeeRepository.delete(employee);
-
-        // Refresh the list after delete
+        // Refresh the list after deleting
         employeeList = employeeRepository.findAll();
-        model.addAttribute("listEmployees",employeeList);
+        // Return all information for the home page and the confirmation
+        model.addAttribute("employeeList",employeeList);
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
         model.addAttribute(
@@ -428,7 +476,7 @@ public class EmployeeController {
         return "home";
     }
 
-    // log out employee
+    // Log out API
     @GetMapping("/logout")
     public String logout(
             HttpServletRequest request
@@ -437,66 +485,8 @@ public class EmployeeController {
         return "login";
     }
 
-    // view confirmEmployee Page
-    @GetMapping("/forgot-Password")
-    public String viewConfirmEmployee() {
-        return "confirmEmployee";
-    }
-
-    // check Employee forgot password existed
-    @PostMapping("/confirmEmployee")
-    public String confirmEmployee(
-            @RequestParam("name") String name,
-            @RequestParam("phone") String phone,
-            @RequestParam("email") String email,
-            @RequestParam("role") String role,
-            Model model,
-            HttpSession session
-    ) {
-
-        for (int i=0;i<employeeList.size();i++) {
-            if (
-                    employeeList.get(i).getName().compareToIgnoreCase(name)==0&&
-                            employeeList.get(i).getPhone().compareToIgnoreCase(phone)==0&&
-                            employeeList.get(i).getEmail().compareTo(email)==0&&
-                            employeeList.get(i).getRole().compareTo(role)==0
-            ) {
-                Long realEmployeeId = employeeList.get(i).getId();
-                session.setAttribute("realEmployeeId",realEmployeeId);
-                return "renewPassword";
-            }
-        }
-        model.addAttribute("name",name);
-        model.addAttribute("phone",phone);
-        model.addAttribute("email",email);
-        model.addAttribute("role",role);
-        model.addAttribute("errorEmployee","fakeEmployee");
-        return "confirmEmployee";
-    }
-
-    // Renew password
-    @PostMapping("/renewPassword")
-    public String confirmEmployee(
-            @RequestParam("newPassword") String newPassword,
-            Model model,
-            HttpSession session,
-            HttpServletRequest request
-    ){
-        if (session.getAttribute("realEmployeeId")==null) {
-            model.addAttribute("errorEmployee","noEmployee");
-            return "confirmEmployee";
-        }
-        Long id = (Long) session.getAttribute("realEmployeeId");
-        Employee renewPasswordEmployee = employeeRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Employee not exist with id: " + id));
-        renewPasswordEmployee.setPassword(getSHAHash(newPassword));
-        employeeRepository.save(renewPasswordEmployee);
-        request.getSession().invalidate();
-        model.addAttribute("confirm","Renew Password Successfully!");
-        return "login";
-    }
-
-    // Keep the page position
+    // Keep the page position that has the logged in user
+    // Keep the page position that user is doing the actions (view home, search, edit, delete)
     public static long keepPagePosition(
             long employeeId,
             List<Employee> employeeList
@@ -509,6 +499,24 @@ public class EmployeeController {
             }
         }
         return pagePosition;
+    }
+
+    // Get SHA Hash code for the password
+    public static String getSHAHash(String input) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            byte[] messageDigest = md.digest(input.getBytes());
+            return convertByteToHex(messageDigest);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static String convertByteToHex(byte[] data) {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < data.length; i++) {
+            sb.append(Integer.toString((data[i] & 0xff) + 0x100, 16).substring(1));
+        }
+        return sb.toString();
     }
 
 }
