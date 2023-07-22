@@ -24,8 +24,8 @@
     }
     .form {
         background-color: white;
-        box-shadow: 0 3rem 5rem -2rem rgba(0.5, 0.5, 0.5, 0.7);
         border-radius: 10px;
+        box-shadow: 0 3rem 5rem -2rem rgba(0.5, 0.5, 0.5, 0.7);
     }
     .note
     {
@@ -49,6 +49,13 @@
     }
     .form-control{
         border-radius:1.5rem;
+    }
+    .d-grid {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    #alertText {
+        display: none;
     }
 </style>
 <body>
@@ -83,17 +90,18 @@
                         </div>
                     </div>
                 </div>
-                <div class="d-grid gap-2 col-6 mx-auto" style="padding-top: 2%">
+                <div class="d-grid gap-2 col-6 mx-auto">
                     <button type="submit" class="btn btn-outline-primary" id="btnSubmit">Submit</button>
                 </div>
-                <div style="display: none" th:text="${errorEmployee}" id="alertText"></div>
+                <div th:text="${errorEmployee}" id="alertText"></div>
             </div>
         </div>
     </form>
 </div>
 </body>
 <script>
-    var alertText = document.getElementById("alertText").innerText;
+
+    let alertText = document.getElementById("alertText").innerText;
     if (alertText==="fakeEmployee") {
         alert("The employee doesn't exist! Please check again!");
     } else if (alertText==="noEmployee") {
@@ -101,18 +109,10 @@
     }
 
     function enableBtn() {
-        var name = document.getElementById("name").value;
-        var phone = document.getElementById("phone").value;
-        var email = document.getElementById("email").value;
-        if (
-            name!==""&&
-            phone!==""&&
-            email!==""
-        ) {
-            document.getElementById("btnSubmit").disabled = false;
-        } else {
-            document.getElementById("btnSubmit").disabled = true;
-        }
+        let name = document.getElementById("name").value;
+        let phone = document.getElementById("phone").value;
+        let email = document.getElementById("email").value;
+        document.getElementById("btnSubmit").disabled = !(name !== "" && phone !== "" && email !== "");
     }
     setInterval(enableBtn,10);
 </script>

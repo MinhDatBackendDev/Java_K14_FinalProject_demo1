@@ -33,6 +33,34 @@
         .panel {
             margin-top: 15px;
         }
+        #remember {
+            display: none;
+        }
+        .login-info {
+            text-align: center;
+            padding: 5px;
+        }
+        .sign-up, .forgot-password {
+            font-size: 85%;
+            text-align: center;
+        }
+        .sign-up {
+            border-top: 1px solid #888;
+            padding-top: 15px;
+        }
+        .forgot-password {
+            padding-top: 5px;
+        }
+        #btnShow {
+            width: 30px;
+            padding: 9px 10px 9px 6px;
+        }
+        .panel-title {
+            text-align: center;
+        }
+        .input-group {
+            display: flex;
+        }
     </style>
 </head>
 <body>
@@ -41,7 +69,7 @@
         <div class="col-md-4 col-md-offset-4">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <div class="panel-title" style="text-align: center">Login Form</div>
+                    <div class="panel-title">Login Form</div>
                 </div>
                 <div class="panel-body">
                     <form accept-charset="UTF-8" role="form" action="/api/v1/employees/login" method="post">
@@ -50,16 +78,17 @@
                                 <input class="form-control" placeholder="Username" name="name" type="text"
                                        th:value="${usernameCookie}" id="name">
                             </div>
-                            <div class="input-group" style="display: flex">
+                            <div class="input-group">
                                 <input class="form-control" placeholder="Password" name="password" type="password"
                                        th:value="${passwordCookie}" id="password">
-
-                                <button type="button" onclick="showPassword()" class="form-control" style="width: 30px; padding: 9px 10px 9px 6px;">
-                                    <svg id="btnEye" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16">
+                                <button class="form-control" type="button" onclick="showPassword()" id="btnShow">
+                                    <svg id="btnEye" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                         fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16">
                                         <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
                                         <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
                                     </svg>
-                                    <svg id="btnEyeSlash" style="display: none" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash-fill" viewBox="0 0 16 16">
+                                    <svg id="btnEyeSlash" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                         fill="currentColor" class="bi bi-eye-slash-fill" viewBox="0 0 16 16">
                                         <path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z"/>
                                         <path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/>
                                     </svg>
@@ -67,13 +96,13 @@
                             </div>
                             <div class="checkbox">
                                 <label>
-                                    <input type="checkbox" id="checkbox" th:checked="${rememberCookie}=='remember'?'true':'false'"> Remember Me
+                                    <input type="checkbox" id="checkbox" th:checked="${rememberCookie}=='remember'?'true':'false'">Remember me
                                 </label>
                             </div>
                             <div>
-                                <input style="display: none" type="text" id="remember" name="remember" value="noRemember"/>
+                                <input type="text" id="remember" name="remember" value="noRemember"/>
                             </div>
-                            <div style="text-align: center; padding: 5px;">
+                            <div class="login-info">
                                 <div th:text="${error}" id="error"></div>
                                 <div th:text="${confirm}" id="confirm"></div>
                             </div>
@@ -83,11 +112,11 @@
                 </div>
                 <div class="form-group">
                     <div class="col-md-12 control">
-                        <div style="border-top: 1px solid#888; padding-top:15px; font-size:85%; text-align: center" >
+                        <div class="sign-up">
                             Don't have an account!
                             <a href="/api/v1/employees/register">Sign Up Here</a>
                         </div>
-                        <div style="padding-top:5px; font-size:85%; text-align: center" >
+                        <div class="forgot-password">
                             <a href="/api/v1/employees/forgot-Password">Forgot Password?</a>
                         </div>
                     </div>
@@ -98,16 +127,17 @@
 </div>
 </body>
 <script>
-  var error = document.getElementById("error");
+  let error = document.getElementById("error");
   error.style.color="red";
-  var confirm = document.getElementById("confirm");
+  let confirm = document.getElementById("confirm");
   confirm.style.color="green";
-  var btnEye = document.getElementById("btnEye");
-  var btnEyeSlash = document.getElementById("btnEyeSlash");
+  let btnEye = document.getElementById("btnEye");
+  let btnEyeSlash = document.getElementById("btnEyeSlash");
+  btnEyeSlash.style.display = 'none';
 
   //Show Password with Eye Button
   function showPassword() {
-      var password = document.getElementById("password");
+      let password = document.getElementById("password");
       if (password.type === "password") {
           password.type = "text";
           btnEye.style.display = 'none';
@@ -119,8 +149,9 @@
       }
   }
 
-  var checkbox = document.getElementById("checkbox");
-  var remember = document.getElementById("remember");
+  //Get checkbox value
+  let checkbox = document.getElementById("checkbox");
+  let remember = document.getElementById("remember");
   if (checkbox.checked) {
       remember.value = "remember";
   }
@@ -132,17 +163,13 @@
       }
   });
 
+  //Enable button when input is filled
   function enableBtn() {
-      var name = document.getElementById("name").value;
-      var password = document.getElementById("password").value;
-      if (
-          name!==""&&
-          password!==""
-      ) {
-          document.getElementById("btnSubmit").disabled = false;
-      } else {
-          document.getElementById("btnSubmit").disabled = true;
-      }
+      let name = document.getElementById("name").value;
+      let password = document.getElementById("password").value;
+      document.getElementById("btnSubmit").disabled =
+          !(name !== "" &&
+          password !== "");
   }
   setInterval(enableBtn,10);
 

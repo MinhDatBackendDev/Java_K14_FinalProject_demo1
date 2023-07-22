@@ -29,6 +29,7 @@ public class EmployeeController {
     private String nameS;
     private String roleS;
     private int check;
+    private long idS;
 
     // view Login page and check session and cookie API
     @GetMapping("/login")
@@ -102,6 +103,13 @@ public class EmployeeController {
                  */
                 session.setAttribute("nameS",employeeList.get(i).getName());
                 session.setAttribute("roleS",employeeList.get(i).getRole());
+
+                session.setAttribute("idS",employeeList.get(i).getId());
+                idS = (long) session.getAttribute("idS");
+
+                // Keep pagePosition for login and search
+                model.addAttribute("pagePosition",keepPagePosition(idS,employeeList));
+
                 model.addAttribute("listEmployees",employeeList);
                 nameS = (String) session.getAttribute("nameS");
                 model.addAttribute("nameS",nameS);
@@ -212,7 +220,14 @@ public class EmployeeController {
             return "login";
         }
 
+        // Refresh the list after add
         employeeList = employeeRepository.findAll();
+
+        // Keep pagePosition for delete, edit and create
+        int limit = 5;
+        long pagePosition = (long) Math.ceil((employeeList.size())/limit)+1;
+        model.addAttribute("pagePosition",pagePosition);
+
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
         model.addAttribute("listEmployees",employeeList);
@@ -233,6 +248,10 @@ public class EmployeeController {
             model.addAttribute("nameS",nameS);
             model.addAttribute("roleS",roleS);
             model.addAttribute("listEmployees",employeeList);
+
+            // Keep pagePosition for login and search
+            model.addAttribute("pagePosition",keepPagePosition(idS,employeeList));
+
             return "home";
         } else {
             List<Employee> employeeListSearch = new ArrayList<>();
@@ -241,6 +260,10 @@ public class EmployeeController {
                     employeeListSearch.add(employeeList.get(i));
                 }
             }
+
+            // Keep pagePosition for login and search
+            model.addAttribute("pagePosition",1);
+
             model.addAttribute("listEmployees",employeeListSearch);
             model.addAttribute("nameS",nameS);
             model.addAttribute("roleS",roleS);
@@ -257,6 +280,7 @@ public class EmployeeController {
             model.addAttribute("error","Please login!");
             return "login";
         }
+
         Employee updateEmployee = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not exist with id: " + id));
         String name = updateEmployee.getName();
@@ -272,10 +296,16 @@ public class EmployeeController {
         if (
                 name.compareTo(nameS)==0
         ) {
-            model.addAttribute("errorEdit","errorEdit");
+            model.addAttribute("errorEdit","You can not edit this employee!");
+
+            // Keep pagePosition for delete, edit and create
+            model.addAttribute("pagePosition",keepPagePosition(id,employeeList));
             return "home";
         } else if (roleS.compareTo("Manager") == 0 && role.compareTo("Staff") != 0) {
-            model.addAttribute("errorEdit","errorEdit");
+            model.addAttribute("errorEdit","You can not edit this employee!");
+
+            // Keep pagePosition for delete, edit and create
+            model.addAttribute("pagePosition",keepPagePosition(id,employeeList));
             return "home";
         }
 
@@ -299,6 +329,9 @@ public class EmployeeController {
             model.addAttribute("error","Please login!");
             return "login";
         }
+
+        // Keep pagePosition for delete, edit and create
+        model.addAttribute("pagePosition",keepPagePosition(id,employeeList));
 
         // check employee is existed or not with logged in account
         check = 0;
@@ -334,6 +367,7 @@ public class EmployeeController {
         updateEmployee.setRole(role);
         employeeRepository.save(updateEmployee);
 
+        //Refresh the list after edit
         employeeList = employeeRepository.findAll();
         model.addAttribute("listEmployees",employeeList);
         model.addAttribute("nameS",nameS);
@@ -358,20 +392,29 @@ public class EmployeeController {
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not exist with id: " + id));
         String name = employee.getName();
 
+        // Keep pagePosition for delete, edit and create
+        model.addAttribute("pagePosition",keepPagePosition(id,employeeList));
+
         // Delete with role
         if (
                 name.compareTo(nameS)==0
         ) {
-            model.addAttribute("errorDelete","errorDelete");
+            model.addAttribute("errorDelete","You can not delete this employee!");
+            model.addAttribute("listEmployees",employeeList);
+            model.addAttribute("nameS",nameS);
+            model.addAttribute("roleS",roleS);
             return "home";
         } else if (roleS.compareTo("Manager") == 0 && employee.getRole().compareTo("Staff") != 0) {
-            model.addAttribute("errorDelete","errorDelete");
+            model.addAttribute("errorDelete","You can not delete this employee!");
+            model.addAttribute("listEmployees",employeeList);
+            model.addAttribute("nameS",nameS);
+            model.addAttribute("roleS",roleS);
             return "home";
         }
 
         employeeRepository.delete(employee);
 
-        // Luu y delete xong thi phai tim lai
+        // Refresh the list after delete
         employeeList = employeeRepository.findAll();
         model.addAttribute("listEmployees",employeeList);
         model.addAttribute("nameS",nameS);
@@ -450,5 +493,22 @@ public class EmployeeController {
         model.addAttribute("confirm","Renew Password Successfully!");
         return "login";
     }
+
+    // Keep the page position
+    public static long keepPagePosition(
+            long employeeId,
+            List<Employee> employeeList
+    ) {
+        long pagePosition = 1;
+        int limit = 5;
+        for (int i=0; i<employeeList.size(); i++) {
+            if (employeeList.get(i).getId()==employeeId) {
+                pagePosition = (long) Math.ceil(((i+1)/limit))+1;
+            }
+        }
+        return pagePosition;
+    }
+
+
 
 }
