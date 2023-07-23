@@ -109,6 +109,7 @@
   }
 
   .errors, .confirms {
+    display: flex;
     background-color: white;
     border-radius: 10px;
     box-sizing: border-box;
@@ -118,11 +119,16 @@
   }
 
   .errors {
-    color: crimson;
+    color: #dc3545;
   }
 
   .confirms {
     color: darkseagreen;
+  }
+
+  svg {
+    margin-top: 5px;
+    margin-right: 2px;
   }
 </style>
 <body>
@@ -155,16 +161,18 @@
   <div class="right-content">
     <div class="notifications" id="errors">
       <div class="errors">
-        <div th:text="${errorEdit}" id="errorEdit"></div>
-        <div th:text="${errorDelete}" id="errorDelete"></div>
-        <div th:text="${errorSearch}" id="errorSearch"></div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 18 18">
+          <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+        </svg>
+        <div th:text="${errors}"></div>
       </div>
     </div>
     <div class="notifications" id="confirms">
       <div class="confirms">
-        <div th:text="${confirmEdit}" id="confirmEdit"></div>
-        <div th:text="${confirmDelete}" id="confirmDelete"></div>
-        <div th:text="${confirmCreate}" id="confirmCreate"></div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 18 18">
+          <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+        </svg>
+        <div th:text="${confirms}"></div>
       </div>
     </div>
   </div>
@@ -214,12 +222,14 @@
         <td>[[${employee.name}]]</td>
         <td>[[${employee.phone}]]</td>
         <td>[[${employee.email}]]</td>
-        <td id="employeeRole" th:value="${employee.role}">[[${employee.role}]]</td>
+        <td>[[${employee.role}]]</td>
         <td><form th:action="@{/api/v1/employees/edit/{id}(id=${employee.id})}" method="get" id="btnEdit">
-          <button class="btn btn-outline-primary" type="submit" th:name="btnEdit" >Edit</button>
+          <button class="btn btn-outline-primary" type="submit" th:name="btnEdit"
+                  th:disabled="${employee.role}=='Leader'?true:(${employee.role==roleS&&roleS=='Manager'}?true:false)">Edit</button>
         </form></td>
         <td><form th:action="@{/api/v1/employees/delete/{id}(id=${employee.id})}" method="get" id="btnDelete">
-          <button class="btn btn-outline-primary" type="submit" th:name="btnDelete" >Delete</button>
+          <button class="btn btn-outline-primary" type="submit" th:name="btnDelete"
+                  th:disabled="${employee.role}=='Leader'?true:false">Delete</button>
         </form></td>
       </tr>
     </th:block>
@@ -282,10 +292,11 @@
     loadItem();
   }
 
-  // Load button by Role js
+  // Disabled all buttons when user's role is Staff
+  // Disable add and delete buttons when user's role is Manager
   let list_btn_edit = document.getElementsByName("btnEdit");
   let list_btn_delete = document.getElementsByName("btnDelete");
-  if (document.getElementById("roleS").value==="Staff") {
+  if (document.getElementById("roleS").innerText==="Staff") {
     document.getElementById("btnAdd").disabled=true;
     function loadButton() {
       let beginGet = limit * (thisPage - 1);
@@ -322,30 +333,30 @@
     loadButton();
   }
 
+  // errorEdit = document.getElementById("errorEdit").innerText;
+  // errorDelete = document.getElementById("errorDelete").innerText;
+  // errorSearch = document.getElementById("errorSearch").innerText;
+  // if (
+  //         errorEdit === "" &&
+  //         errorDelete === "" &&
+  //         errorSearch === ""
+  // ) {
+  //   document.getElementById("errors").style.display = 'none';
+  // } else {
+  //   document.getElementById("errors").style.display = 'block';
+  // }
   // Check errors and confirms to show
-  errorEdit = document.getElementById("errorEdit").innerText;
-  errorDelete = document.getElementById("errorDelete").innerText;
-  errorSearch = document.getElementById("errorSearch").innerText;
-  if (
-          errorEdit === "" &&
-          errorDelete === "" &&
-          errorSearch === ""
-  ) {
+  errors = document.getElementById("errors").innerText;
+  if (errors !== "") {
+    document.querySelector('.listPage').style.display = 'none';
+  }
+  if (errors === "") {
     document.getElementById("errors").style.display = 'none';
   } else {
     document.getElementById("errors").style.display = 'block';
   }
-  if (errorSearch !== "") {
-    document.querySelector('.listPage').style.display = 'none';
-  }
-  confirmEdit = document.getElementById("confirmEdit").innerText;
-  confirmDelete = document.getElementById("confirmDelete").innerText;
-  confirmCreate = document.getElementById("confirmCreate").innerText;
-  if (
-          confirmEdit === "" &&
-          confirmDelete === "" &&
-          confirmCreate === ""
-  ) {
+  confirms = document.getElementById("confirms").innerText;
+  if (confirms === "") {
     document.getElementById("confirms").style.display = 'none';
   } else {
     document.getElementById("confirms").style.display = 'block';

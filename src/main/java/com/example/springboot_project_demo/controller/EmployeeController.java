@@ -275,7 +275,7 @@ public class EmployeeController {
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
         model.addAttribute("employeeList",employeeList);
-        model.addAttribute("confirmCreate","Create new employee with name is "+name+" successfully!");
+        model.addAttribute("confirms","Create new employee with name is "+name+" successfully!");
         return "home";
     }
 
@@ -308,7 +308,7 @@ public class EmployeeController {
             }
             // If the employee is not found, return the error in the home page
             if (employeeListSearch.size()==0) {
-                model.addAttribute("errorSearch","Employee with name is "+name+" is not found!");
+                model.addAttribute("errors","Employee with name is "+name+" is not found!");
             }
             // Return all searches in the first page
             model.addAttribute("pagePosition",1);
@@ -338,25 +338,26 @@ public class EmployeeController {
         String phone = updateEmployee.getPhone();
         String email = updateEmployee.getEmail();
         String role = updateEmployee.getRole();
-        // Return all information for the home page if error occurs
-        model.addAttribute("employeeList",employeeList);
-        model.addAttribute("nameS",nameS);
-        model.addAttribute("roleS",roleS);
-        // Check the role and the name of the user in order to prevent user from editing himself and higher role employees
-        if (
-                name.compareTo(nameS)==0
-        ) {
-            model.addAttribute("errorEdit","You can not edit this employee!");
-            // Keep page position that user is doing editing
-            model.addAttribute("pagePosition",keepPagePosition(id,employeeList));
-            return "home";
-        } else if (roleS.compareTo("Manager") == 0 && role.compareTo("Staff") != 0) {
-            model.addAttribute("errorEdit","You can not edit this employee!");
-            // Keep page position that user is doing editing
-            model.addAttribute("pagePosition",keepPagePosition(id,employeeList));
-            return "home";
-        }
+//        // Return all information for the home page if error occurs
+//        model.addAttribute("employeeList",employeeList);
+//        model.addAttribute("nameS",nameS);
+//        model.addAttribute("roleS",roleS);
+//        // Check the role and the name of the user in order to prevent user from editing himself and higher role employees
+//        if (
+//                name.compareTo(nameS)==0
+//        ) {
+//            model.addAttribute("errorEdit","You can not edit this employee!");
+//            // Keep page position that user is doing editing
+//            model.addAttribute("pagePosition",keepPagePosition(id,employeeList));
+//            return "home";
+//        } else if (roleS.compareTo("Manager") == 0 && role.compareTo("Staff") != 0) {
+//            model.addAttribute("errorEdit","You can not edit this employee!");
+//            // Keep page position that user is doing editing
+//            model.addAttribute("pagePosition",keepPagePosition(id,employeeList));
+//            return "home";
+//        }
         // Send all employee's information for updating
+        model.addAttribute("roleS",roleS);
         model.addAttribute("name",name);
         model.addAttribute("phone",phone);
         model.addAttribute("email",email);
@@ -421,7 +422,7 @@ public class EmployeeController {
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
         model.addAttribute(
-                "confirmEdit",
+                "confirms",
                 "Edit employee with name is "+name+" successfully!"
         );
         return "home";
@@ -443,24 +444,24 @@ public class EmployeeController {
         String name = employee.getName();
         // Keep page position that user is doing deleting
         model.addAttribute("pagePosition",keepPagePosition(id,employeeList));
-        // Check the role and the name of the user in order to prevent user from deleting himself and higher role employees
-        if (
-                name.compareTo(nameS)==0
-        ) {
-            // Return all information for the home page and the error
-            model.addAttribute("errorDelete","You can not delete this employee!");
-            model.addAttribute("employeeList",employeeList);
-            model.addAttribute("nameS",nameS);
-            model.addAttribute("roleS",roleS);
-            return "home";
-        } else if (roleS.compareTo("Manager") == 0 && employee.getRole().compareTo("Staff") != 0) {
-            // Return all information for the home page and the error
-            model.addAttribute("errorDelete","You can not delete this employee!");
-            model.addAttribute("employeeList",employeeList);
-            model.addAttribute("nameS",nameS);
-            model.addAttribute("roleS",roleS);
-            return "home";
-        }
+//        // Check the role and the name of the user in order to prevent user from deleting himself and higher role employees
+//        if (
+//                name.compareTo(nameS)==0
+//        ) {
+//            // Return all information for the home page and the error
+//            model.addAttribute("errorDelete","You can not delete this employee!");
+//            model.addAttribute("employeeList",employeeList);
+//            model.addAttribute("nameS",nameS);
+//            model.addAttribute("roleS",roleS);
+//            return "home";
+//        } else if (roleS.compareTo("Manager") == 0 && employee.getRole().compareTo("Staff") != 0) {
+//            // Return all information for the home page and the error
+//            model.addAttribute("errorDelete","You can not delete this employee!");
+//            model.addAttribute("employeeList",employeeList);
+//            model.addAttribute("nameS",nameS);
+//            model.addAttribute("roleS",roleS);
+//            return "home";
+//        }
         // Delete the employee
         employeeRepository.delete(employee);
         // Refresh the list after deleting
@@ -470,7 +471,7 @@ public class EmployeeController {
         model.addAttribute("nameS",nameS);
         model.addAttribute("roleS",roleS);
         model.addAttribute(
-                "confirmDelete",
+                "confirms",
                 "Delete employee with name is "+name+" successfully!"
         );
         return "home";

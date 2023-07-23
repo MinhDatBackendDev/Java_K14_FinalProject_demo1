@@ -57,6 +57,9 @@
       padding-left: 10%;
       padding-right: 10%;
     }
+    .page-info {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -85,6 +88,7 @@
   </div>
 </nav>
 <form method="POST" th:action="@{/api/v1/employees/update/{id}(id=${id})}">
+  <div class="page-info" th:text="${roleS}"></div>
   <div class="container register-form">
     <div class="form">
       <div class="note">
@@ -110,8 +114,8 @@
                 <select class="form-control" name="role">
                   <option th:text="${role}" th:value="${role}" selected></option>
                   <option value="Staff">Staff</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Leader">Leader</option>
+                  <option th:if="${roleS}=='Leader'" value="Manager">Manager</option>
+                  <option th:if="${roleS}=='Leader'" value="Leader">Leader</option>
                 </select>
             </div>
           </div>
@@ -196,6 +200,7 @@
     }
   }
 
+  //Enable button when all inputs are filled and matches the regexes
   function enableBtn() {
     let name = document.getElementById("name").value;
     let phone = document.getElementById("phone").value;

@@ -100,7 +100,7 @@
 </div>
 </body>
 <script>
-
+    // Show alert
     let alertText = document.getElementById("alertText").innerText;
     if (alertText==="fakeEmployee") {
         alert("The employee doesn't exist! Please check again!");
@@ -108,6 +108,7 @@
         alert("Please fill this form!");
     }
 
+    //Enable button when all inputs are filled
     function enableBtn() {
         let name = document.getElementById("name").value;
         let phone = document.getElementById("phone").value;
