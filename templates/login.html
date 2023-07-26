@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+            crossorigin="anonymous"></script>
+    <title>Login Page</title>
+</head>
+<style>
+    .notifications {
+        margin-top: 15px;
+    }
+
+    .alert {
+        display: flex;
+        padding: 20px 15px 20px 20px;
+        background-color: #f44336;
+        color: white;
+        opacity: 1;
+        transition: opacity 0.6s;
+        margin-bottom: 15px;
+    }
+
+    .text {
+        font-size: 18px;
+        text-align: justify;
+        min-width: 250px;
+    }
+
+    #errorText, #successText {
+        text-align: center;
+    }
+
+    .alert.success {
+        background-color: #04AA6D;
+    }
+
+    .close-btn {
+        float: right;
+        margin-left: 10px;
+        color: white;
+        font-weight: bold;
+        font-size: 22px;
+        line-height: 20px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .close-btn:hover {
+        color: #ced4da;
+    }
+
+    body {
+        margin-top: 100px;
+        margin-left: 8%;
+        margin-right: 8%;
+        background-color: #ced4da;
+    }
+
+    .container {
+        margin: auto;
+        max-width: 500px;
+    }
+
+    .form {
+        background-color: white;
+    }
+
+    .note {
+        text-align: center;
+        height: 80px;
+        background: #0072ff;
+        color: #fff;
+        font-weight: 400;
+        line-height: 80px;
+        border-radius: 5px 5px 0px 0px;
+        font-size: 30px;
+    }
+
+    .form-content {
+        padding: 20px;
+        border: 1px solid #ced4da;
+        border-radius: 0px 0px 5px 5px;
+    }
+
+    .form-floating>.form-control:not(:placeholder-shown) {
+        padding-top: 1.875rem;
+    }
+
+    .form-floating>#password {
+        padding-right: 45px;
+    }
+
+    svg {
+        font-size: 18px;
+    }
+
+    .form-floating>#eyeBtn {
+        z-index: 2;
+        position: absolute;
+        bottom: .75rem;
+        right: 10px;
+        border: none;
+        background-color: white;
+        color: grey;
+    }
+
+    .form-check-label {
+        margin-left: 5px;
+    }
+
+    #remember {
+        display: none;
+    }
+
+    .d-grid {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .sign-up,
+    .forgot-password {
+        font-size: 85%;
+        text-align: center;
+    }
+
+    .sign-up {
+        border-top: 1px solid #888;
+        padding-top: 15px;
+    }
+
+    .forgot-password {
+        padding-top: 5px;
+    }
+</style>
+
+<body>
+<div class="notifications position-absolute top-0 start-50 translate-middle-x">
+    <div class="alert" id="error">
+        <div class="text" th:text="${error}" id="errorText"></div>
+        <span class="close-btn">&times;</span>
+    </div>
+    <div class="alert success" id="success">
+        <div class="text" th:text="${success}" id="successText"></div>
+        <span class="close-btn">&times;</span>
+    </div>
+</div>
+<div class="container register-form">
+    <div class="shadow-lg p-3 mb-5 bg-body-tertiary rounded">
+        <div class="form">
+            <div class="note">
+                <p>Login Form</p>
+            </div>
+            <div class="form-content">
+                <div class="row">
+                    <div class="col">
+                        <form action="/api/v1/employees/login" method="post">
+                            <div class="mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control"
+                                           name="name" id="username" th:value="${usernameCookie}" placeholder="Username...">
+                                    <label for="username">Username: </label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-floating">
+                                    <input type="password" class="form-control"
+                                           name="password" id="password" th:value="${passwordCookie}" placeholder="Password..." onfocus="showEyeBtn()">
+                                    <label for="password">Password: </label>
+                                    <button type="button" id="eyeBtn" onclick="showPassword()">
+                                        <svg id="btnEye" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                             fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+                                            <path
+                                                    d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z" />
+                                            <path
+                                                    d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
+                                        </svg>
+                                        <svg id="btnEyeSlash" xmlns="http://www.w3.org/2000/svg" width="20"
+                                             height="20" fill="currentColor" class="bi bi-eye-slash"
+                                             viewBox="0 0 16 16">
+                                            <path
+                                                    d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z" />
+                                            <path
+                                                    d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z" />
+                                            <path
+                                                    d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="checkbox">
+                                <label class="form-check-label" for="checkbox">Remember me</label>
+                            </div>
+                            <div>
+                                <input type="text" id="remember" name="remember" th:value="${rememberCookie}"/>
+                            </div>
+                            <div class="d-grid gap-2 col-6 mx-auto">
+                                <button type="submit" class="btn btn-primary btn-lg" id="btnSubmit">Login</button>
+                            </div>
+                        </form>
+                        <div class="form-group">
+                            <div class="col-md-12 control">
+                                <div class="sign-up">
+                                    Don't have an account!
+                                    <a href="/api/v1/employees/register">Sign Up Here</a>
+                                </div>
+                                <div class="forgot-password">
+                                    <a href="/api/v1/employees/forgot-Password">Forgot Password?</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    let errorText = document.getElementById("errorText");
+    let successText = document.getElementById("successText");
+    if (errorText.innerText === "") {
+        document.getElementById("error").style.display = "none";
+    }
+    if (successText.innerText === "") {
+        document.getElementById("success").style.display = "none";
+    }
+
+
+    let close = document.getElementsByClassName("close-btn");
+    let i;
+    for (i = 0; i < close.length; i++) {
+        close[i].onclick = function () {
+            let div = this.parentElement;
+            div.style.opacity = "0";
+            setTimeout(function () { div.style.display = "none"; }, 600);
+        }
+    }
+
+    // Show eye button
+    let eyeBtn = document.getElementById("eyeBtn");
+    eyeBtn.style.display = 'none';
+    function showEyeBtn() {
+        eyeBtn.style.display = 'block';
+    }
+
+    // Show password with eye button
+    const btnEye = document.getElementById("btnEye");
+    const btnEyeSlash = document.getElementById("btnEyeSlash");
+    btnEyeSlash.style.display = 'none';
+    function showPassword() {
+        let password = document.getElementById("password");
+        if (password.type === "password") {
+            password.type = "text";
+            btnEye.style.display = 'none';
+            btnEyeSlash.style.display = 'block';
+        } else {
+            password.type = "password";
+            btnEye.style.display = 'block';
+            btnEyeSlash.style.display = 'none';
+        }
+    }
+
+    //Get checkbox value
+    let checkbox = document.getElementById("checkbox");
+    let remember = document.getElementById("remember");
+    if (remember.value === "") {
+        remember.value = "noRemember";
+    } else if (remember.value === "remember") {
+        checkbox.checked = true;
+    }
+    if (checkbox.checked) {
+        remember.value = "remember";
+    }
+    checkbox.addEventListener("change", () => {
+        if (checkbox.checked) {
+            remember.value = "remember";
+        } else {
+            remember.value = "noRemember";
+        }
+    });
+
+    //Enable button when all inputs are filled
+    function enableBtn() {
+        let name = document.getElementById("username").value;
+        let password = document.getElementById("password").value;
+        document.getElementById("btnSubmit").disabled =
+            !(name !== "" &&
+                password !== "");
+    }
+    setInterval(enableBtn, 10);
+
+    // document.getElementById("btnEye").addEventListener('click',showPassword,false);
+    // document.getElementById("btnEyeSlash").addEventListener('click',showPassword,false);
+</script>
+
+</html>
