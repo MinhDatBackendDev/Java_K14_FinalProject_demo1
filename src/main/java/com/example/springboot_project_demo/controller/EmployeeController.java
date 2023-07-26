@@ -180,7 +180,7 @@ public class EmployeeController {
         renewPasswordEmployee.setPassword(getSHAHash(newPassword));
         employeeRepository.save(renewPasswordEmployee);
         request.getSession().invalidate();
-        model.addAttribute("confirm","Renew Password Successfully!");
+        model.addAttribute("success","Renew Password Successfully!");
         return "login";
     }
 
@@ -263,7 +263,7 @@ public class EmployeeController {
         employeeRepository.save(newEmployee);
         // Return to login page with non logged-in user
         if (session.getAttribute("nameS")==null) {
-            model.addAttribute("confirm","Create account successfully!");
+            model.addAttribute("success","Create account successfully!");
             return "login";
         }
         // Refresh the list after change
