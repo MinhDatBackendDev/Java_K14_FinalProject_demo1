@@ -8,11 +8,24 @@
   <meta charset="UTF-8">
   <title>Register Page</title>
   <style>
-    body {
-      background-color: #ced4da;
+    #navbar {
+      position: absolute;
+      z-index: 0;
+      top: 0;
+      left: 0;
+      right: 0;
     }
-    .container.register-form {
-      margin-top: 30px;
+    #navbar>.container {
+      max-width: none;
+      width: 100%;
+      margin-left: 5%;
+      margin-right: 5%;
+    }
+    body {
+      margin-top: 100px;
+      margin-left: 8%;
+      margin-right: 8%;
+      background-color: #ced4da;
     }
     .form {
       background-color: white;
@@ -34,7 +47,7 @@
     }
     .form-content
     {
-      padding: 5%;
+      padding: 2%;
       border: 1px solid #ced4da;
       margin-bottom: 2%;
       border-radius: 0 0 10px 10px;
@@ -46,12 +59,10 @@
       border-radius: 1.5rem;
     }
     .d-grid {
-      margin-top: 5%;
+      margin-top: 30px;
+      margin-bottom: 30px;
       padding-left: 10%;
       padding-right: 10%;
-    }
-    #btnLogOut {
-      padding-left: 10px;
     }
     .form-check {
       margin-left: 20px
@@ -67,21 +78,26 @@
 <body>
 <nav class="navbar navbar-expand-lg bg-body-tertiary" id="navbar">
   <div class="container">
-    <a class="navbar-brand">JAVA K14</a>
+    <a class="navbar-brand" href="/api/v1/employees/login">JAVA K14</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
             data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-            aria-label="Toggle navigation">
+            aria-label="Toggle navigation" id="navbarToggle">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
+        <li class="nav-item" id="home">
           <a class="nav-link active" aria-current="page" href="/api/v1/employees/home">Home</a>
+        </li>
+        <li class="nav-item" id="renewPassword">
+          <a class="nav-link active" aria-current="page" href="/api/v1/employees/renewPassword">Renew Password</a>
         </li>
       </ul>
       <div class="d-flex">
-        <form action="/api/v1/employees/logout" method="get">
-          <div id="btnLogOut"><button class="btn btn-outline-primary" type="submit">Log Out</button></div>
+        <form action="/api/v1/employees/logout" method="get" id="btnLogOut">
+          <div class="btn-log-out">
+            <button class="btn btn-outline-primary" type="submit">Log Out</button>
+          </div>
         </form>
       </div>
     </div>
@@ -91,7 +107,7 @@
   <form method="POST" action="/api/v1/employees/register">
     <div class="form">
       <div class="note">
-        <p id="formName" th:text="${formName}+' Form'"></p>
+        <p th:text="${formName}+' Form'" id="formName"></p>
       </div>
       <div class="form-content">
         <div class="row">
@@ -116,7 +132,8 @@
                 <div class="input-group-prepend">
                   <span class="input-group-text">Your Role *</span>
                 </div>
-                <select class="form-control" name="role" th:value="${role}">
+                <select class="form-control" name="role">
+                  <option th:if="${role}==''" th:text="${role}" th:value="${role}" selected></option>
                   <option value="Staff">Staff</option>
                   <option value="Manager">Manager</option>
                   <option value="Leader">Leader</option>
@@ -179,7 +196,10 @@
 
   //Show form name
   if (document.getElementById("formName").innerText === "Registration Form") {
-    document.getElementById("navbar").style.display = 'none';
+    document.getElementById("home").style.display = "none";
+    document.getElementById("renewPassword").style.display = "none";
+    document.getElementById("btnLogOut").style.display = "none";
+    document.getElementById("navbarToggle").style.display = "none";
   }
 
   // Validate password and confirmed password

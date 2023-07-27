@@ -10,8 +10,56 @@
     <title>Forgot Password</title>
 </head>
 <style>
+    #navbar {
+        position: absolute;
+        z-index: 0;
+        top: 0;
+        left: 0;
+        right: 0;
+    }
+    #navbar>.container {
+        max-width: none;
+        width: 100%;
+        margin-left: 5%;
+        margin-right: 5%;
+    }
+    .notifications {
+        margin-top: 15px;
+    }
+    .alert {
+        display: flex;
+        padding: 20px 15px 20px 20px;
+        background-color: #f44336;
+        color: white;
+        opacity: 1;
+        transition: opacity 0.6s;
+        margin-bottom: 15px;
+    }
+    .text {
+        font-size: 18px;
+        text-align: justify;
+        min-width: 250px;
+    }
+    #alertText{
+        text-align: center;
+    }
+    .close-btn {
+        float: right;
+        margin-left: 10px;
+        color: white;
+        font-weight: bold;
+        font-size: 22px;
+        line-height: 20px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .close-btn:hover {
+        color: #ced4da;
+    }
     body {
-        margin: 8%;
+        margin-top: 100px;
+        margin-left: 8%;
+        margin-right: 8%;
         background-color: #ced4da;
     }
     label {
@@ -54,11 +102,19 @@
         margin-top: 10px;
         margin-bottom: 10px;
     }
-    #alertText {
-        display: none;
-    }
 </style>
 <body>
+<nav class="navbar navbar-expand-lg bg-body-tertiary" id="navbar">
+    <div class="container">
+        <a class="navbar-brand" href="/api/v1/employees/login">JAVA K14</a>
+    </div>
+</nav>
+<div class="notifications position-absolute top-0 start-50 translate-middle-x">
+    <div class="alert" id="error">
+        <div class="text" th:text="${errorEmployee}" id="alertText"></div>
+        <span class="close-btn">&times;</span>
+    </div>
+</div>
 <div class="container register-form">
     <form method="POST" th:action="@{/api/v1/employees/confirmEmployee}">
         <div class="form">
@@ -82,7 +138,8 @@
                         </div>
                         <div class="form-group">
                             <label>Role: </label>
-                            <select class="form-control" name="role" th:value="${role}">
+                            <select class="form-control" name="role">
+                                <option th:if="${role}==''" th:text="${role}" th:value="${role}" selected></option>
                                 <option value="Staff">Staff</option>
                                 <option value="Manager">Manager</option>
                                 <option value="Leader">Leader</option>
@@ -93,7 +150,6 @@
                 <div class="d-grid gap-2 col-6 mx-auto">
                     <button type="submit" class="btn btn-outline-primary" id="btnSubmit">Submit</button>
                 </div>
-                <div th:text="${errorEmployee}" id="alertText"></div>
             </div>
         </div>
     </form>
@@ -101,11 +157,20 @@
 </body>
 <script>
     // Show alert
-    let alertText = document.getElementById("alertText").innerText;
-    if (alertText==="fakeEmployee") {
-        alert("The employee doesn't exist! Please check again!");
-    } else if (alertText==="noEmployee") {
-        alert("Please fill this form!");
+    let alertText = document.getElementById("alertText");
+    if (alertText.innerText === "") {
+        document.getElementById("error").style.display = "none";
+    }
+    let close = document.getElementsByClassName("close-btn");
+    let i;
+    for (i = 0; i < close.length; i++) {
+        close[i].onclick = function () {
+            let div = this.parentElement;
+            div.style.opacity = "0";
+            setTimeout(function () {
+                div.style.display = "none";
+            }, 600);
+        }
     }
 
     //Enable button when all inputs are filled

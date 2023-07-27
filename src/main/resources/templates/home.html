@@ -34,10 +34,6 @@
   }
 
   /*Home page css*/
-  .btnLogOut {
-    padding-left: 10px;
-  }
-
   #searchText {
     padding: 0 10px 10px 10px;
   }
@@ -121,7 +117,7 @@
 <body>
 <nav class="navbar navbar-expand-lg bg-body-tertiary">
   <div class="container">
-    <div class="navbar-brand">JAVA K14</div>
+    <a class="navbar-brand" href="/api/v1/employees/login">JAVA K14</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
             data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
             aria-label="Toggle navigation">
@@ -132,10 +128,13 @@
         <li class="nav-item">
           <a class="nav-link active" aria-current="page" href="/api/v1/employees/home">Home</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/api/v1/employees/renewPassword">Renew Password</a>
+        </li>
       </ul>
       <div class="d-flex">
         <form action="/api/v1/employees/logout" method="get">
-          <div class="btnLogOut">
+          <div class="btn-log-out">
             <button class="btn btn-outline-primary" type="submit">Log Out</button>
           </div>
         </form>

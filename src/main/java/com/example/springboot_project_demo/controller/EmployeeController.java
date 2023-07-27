@@ -29,7 +29,7 @@ public class EmployeeController {
     private String nameS;
     private String roleS;
     private int check;
-    private long idS; // idS for keeping the page position
+    private long idS; // idS for keeping the page position and renew password
     private int limit = 5; // This limit must match the limit in the pagination js
 
     // View Login page and check session and cookie API
@@ -112,6 +112,7 @@ public class EmployeeController {
                 model.addAttribute("employeeList",employeeList);
                 model.addAttribute("nameS",nameS);
                 model.addAttribute("roleS",roleS);
+                model.addAttribute("confirms","Login successfully!");
                 return "home";
             }
         }
@@ -139,6 +140,8 @@ public class EmployeeController {
             Model model,
             HttpSession session
     ) {
+        // Get the employee list to verify user
+        employeeList = employeeRepository.findAll();
         // Verify user is a real employee or not
         for (int i=0;i<employeeList.size();i++) {
             if (
@@ -153,12 +156,34 @@ public class EmployeeController {
             }
         }
         // Return all inputs that user entered
-        model.addAttribute("errorEmployee","fakeEmployee");
+        model.addAttribute("errorEmployee","The employee doesn't exist! Please check again!");
         model.addAttribute("name",name);
         model.addAttribute("phone",phone);
         model.addAttribute("email",email);
         model.addAttribute("role",role);
         return "confirmEmployee";
+    }
+
+    // View Renew password page API
+    @GetMapping("/renewPassword")
+    public String viewRenewPassword(
+            Model model,
+            HttpSession session
+    ){
+        // Prevent user from skipping the verification
+        // Check logged in user want to change password
+        if (
+                session.getAttribute("realEmployeeId")==null&&
+                        session.getAttribute("nameS")==null
+        ) {
+            model.addAttribute("errorEmployee","Please fill this form!");
+            return "confirmEmployee";
+        }
+        // Check Session for showing log out button
+        if (session.getAttribute("nameS")!=null) {
+            model.addAttribute("show","yes");
+        }
+        return "renewPassword";
     }
 
     // Renew password API
@@ -170,11 +195,20 @@ public class EmployeeController {
             HttpServletRequest request
     ){
         // Prevent user from skipping the verification
-        if (session.getAttribute("realEmployeeId")==null) {
-            model.addAttribute("errorEmployee","noEmployee");
+        // Check logged in user want to change password
+        if (
+                session.getAttribute("realEmployeeId")==null&&
+                        session.getAttribute("nameS")==null
+        ) {
+            model.addAttribute("errorEmployee","Please fill this form!");
             return "confirmEmployee";
         }
-        Long id = (Long) session.getAttribute("realEmployeeId");
+        long id;
+        if (session.getAttribute("nameS")==null) {
+            id = (Long) session.getAttribute("realEmployeeId");
+        } else {
+            id = idS;
+        }
         Employee renewPasswordEmployee = employeeRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Employee not exist with id: " + id));
         renewPasswordEmployee.setPassword(getSHAHash(newPassword));

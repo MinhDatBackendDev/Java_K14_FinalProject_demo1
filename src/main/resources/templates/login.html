@@ -11,6 +11,21 @@
     <title>Login Page</title>
 </head>
 <style>
+    #navbar {
+        position: absolute;
+        z-index: 0;
+        top: 0;
+        left: 0;
+        right: 0;
+    }
+
+    #navbar>.container {
+        max-width: none;
+        width: 100%;
+        margin-left: 5%;
+        margin-right: 5%;
+    }
+
     .notifications {
         margin-top: 15px;
     }
@@ -137,11 +152,15 @@
         padding-top: 5px;
     }
 </style>
-
 <body>
+<nav class="navbar navbar-expand-lg bg-body-tertiary" id="navbar">
+    <div class="container">
+        <a class="navbar-brand" href="/api/v1/employees/login">JAVA K14</a>
+    </div>
+</nav>
 <div class="notifications position-absolute top-0 start-50 translate-middle-x">
     <div class="alert" id="error">
-        <div class="text" th:text="${error}" id="errorText"></div>
+        <div class="text" th:text="${error}" id="errorText">errorText</div>
         <span class="close-btn">&times;</span>
     </div>
     <div class="alert success" id="success">
