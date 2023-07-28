@@ -81,10 +81,12 @@
     <a class="navbar-brand" href="/api/v1/employees/login">JAVA K14</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
             data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-            aria-label="Toggle navigation" id="navbarToggle">
+            aria-label="Toggle navigation" id="navbarToggle"
+            th:if="${formName}=='New Employee'">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent"
+         th:if="${formName}=='New Employee'">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item" id="home">
           <a class="nav-link active" aria-current="page" href="/api/v1/employees/home">Home</a>
@@ -192,14 +194,6 @@
       password.type = "password";
       confirmedPassword.type = "password";
     }
-  }
-
-  //Show form name
-  if (document.getElementById("formName").innerText === "Registration Form") {
-    document.getElementById("home").style.display = "none";
-    document.getElementById("renewPassword").style.display = "none";
-    document.getElementById("btnLogOut").style.display = "none";
-    document.getElementById("navbarToggle").style.display = "none";
   }
 
   // Validate password and confirmed password

@@ -342,7 +342,7 @@ public class EmployeeController {
             }
             // If the employee is not found, return the error in the home page
             if (employeeListSearch.size()==0) {
-                model.addAttribute("errors","Employee with name is "+name+" is not found!");
+                model.addAttribute("errors","Employee with name "+name+" is not found!");
             }
             // Return all searches in the first page
             model.addAttribute("pagePosition",1);
